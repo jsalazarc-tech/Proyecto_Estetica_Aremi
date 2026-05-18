@@ -1,0 +1,103 @@
+╔═══════════════════════════════════════════════════════════════╗
+║  CAMBIO DE USUARIO ADMINISTRADOR A "FERNANDA"                ║
+╚═══════════════════════════════════════════════════════════════╝
+
+CREDENCIALES NUEVAS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Usuario:     fernanda
+Contraseña:  fernanda123
+Rol:         administrador
+
+
+CÓMO APLICAR EL CAMBIO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OPCIÓN 1 - Usando MySQL Workbench o phpMyAdmin:
+
+1. Abre MySQL Workbench o phpMyAdmin
+2. Selecciona la base de datos "salon_aremi"
+3. Ve a la pestaña SQL o Query
+4. Copia y pega este comando:
+
+   UPDATE usuarios
+   SET username = 'fernanda',
+       nombre_completo = 'Fernanda Administrador',
+       password = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'
+   WHERE username = 'admin';
+
+5. Ejecuta el comando (botón Execute/Ejecutar)
+6. ¡Listo! Ya puedes hacer login con fernanda/fernanda123
+
+
+OPCIÓN 2 - Usando línea de comandos MySQL:
+
+1. Abre CMD o Terminal
+2. Ejecuta: mysql -u root -p
+3. Ingresa la contraseña de MySQL (admin1023)
+4. Ejecuta: USE salon_aremi;
+5. Copia y pega:
+
+   UPDATE usuarios
+   SET username = 'fernanda',
+       nombre_completo = 'Fernanda Administrador',
+       password = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92'
+   WHERE username = 'admin';
+
+6. Ejecuta: SELECT * FROM usuarios;
+7. Verifica que aparezca "fernanda"
+
+
+OPCIÓN 3 - Ejecutar el archivo SQL:
+
+1. Abre CMD en la carpeta del proyecto
+2. Ejecuta:
+   mysql -u root -p salon_aremi < actualizar_usuario_admin.sql
+
+3. Ingresa la contraseña de MySQL
+4. ¡Listo!
+
+
+VERIFICACIÓN:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Después de ejecutar el cambio:
+
+1. Ejecuta: ejecutar.bat
+2. En la pantalla de login ingresa:
+   Usuario: fernanda
+   Contraseña: fernanda123
+3. Deberías ver: "Bienvenido/a Fernanda Administrador! Rol: administrador"
+
+
+NOTA IMPORTANTE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+El usuario "admin" ya NO funcionará después de este cambio.
+Solo podrás ingresar como:
+- fernanda / fernanda123 (Administrador - acceso total)
+- empleada1 / emp123 (Empleado - acceso limitado)
+
+
+INFORMACIÓN TÉCNICA:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Contraseña: fernanda123
+Hash SHA-256: 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
+
+Si necesitas generar tu propio hash SHA-256:
+1. Ve a: https://emn178.github.io/online-tools/sha256.html
+2. Ingresa tu contraseña
+3. Copia el hash generado
+4. Actualiza en la base de datos
+
+
+¿PROBLEMAS?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Si el login no funciona:
+1. Verifica que MySQL esté corriendo
+2. Revisa que el usuario se haya actualizado:
+   SELECT * FROM usuarios WHERE username = 'fernanda';
+3. Asegúrate de que el hash de contraseña sea correcto
+4. Verifica que la base de datos sea "salon_aremi"
