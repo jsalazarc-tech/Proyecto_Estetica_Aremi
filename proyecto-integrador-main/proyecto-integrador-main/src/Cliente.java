@@ -1,12 +1,33 @@
 public class Cliente {
+    private int id;
     private String nombre;
     private String direccion;
     private String telefono;
+    private String email;
+
+    public Cliente() {}
 
     public Cliente(String nombre, String direccion, String telefono) {
         this.nombre = nombre;
         this.direccion = direccion;
         this.telefono = telefono;
+        this.email = "";
+    }
+
+    public Cliente(int id, String nombre, String direccion, String telefono, String email) {
+        this.id = id;
+        this.nombre = nombre;
+        this.direccion = direccion;
+        this.telefono = telefono;
+        this.email = email;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNombre() {
@@ -33,12 +54,16 @@ public class Cliente {
         this.telefono = telefono;
     }
 
+    public String getEmail() {
+        return email != null ? email : "";
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
     @Override
     public String toString() {
-        return "Cliente{" +
-                "nombre='" + nombre + '\'' +
-                ", direccion='" + direccion + '\'' +
-                ", telefono='" + telefono + '\'' +
-                '}';
+        return nombre + (telefono != null && !telefono.isEmpty() ? " (" + telefono + ")" : "");
     }
 }

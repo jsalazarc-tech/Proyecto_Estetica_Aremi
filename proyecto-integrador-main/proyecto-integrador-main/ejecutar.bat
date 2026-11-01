@@ -1,36 +1,27 @@
 @echo off
-echo ========================================
-echo   SISTEMA AREMI v2.0
-echo   Salon de Belleza - ERP
-echo ========================================
-echo.
-echo Iniciando aplicacion...
+chcp 65001 >nul
+echo ===================================================
+echo   SISTEMA DE GESTIÓN - SALÓN DE BELLEZA AREMI
+echo ===================================================
 echo.
 
-REM Verificar que existan los archivos compilados
 if not exist "out\MainApplication.class" (
-    echo ERROR: El proyecto no esta compilado.
-    echo Por favor ejecute compilar.bat primero.
-    echo.
-    pause
-    exit /b 1
+    echo [*] Compilando proyecto por primera vez...
+    javac -encoding UTF-8 -d out -cp "lib/*;out" src/*.java
+    if %errorlevel% neq 0 (
+        echo [X] Error compilando el proyecto.
+        pause
+        exit /b 1
+    )
 )
 
-REM Ejecutar la aplicacion
-java -cp "out;lib/*" MainApplication
+echo [*] Iniciando aplicación AREMI...
+REM -Xms32m -Xmx256m -XX:+UseSerialGC para optimizar consumo de RAM y evitar errores nativos de memoria
+java -Xms32m -Xmx256m -XX:+UseSerialGC -cp "out;lib/*" MainApplication
 
 if %errorlevel% neq 0 (
     echo.
-    echo ERROR: La aplicacion termino con errores.
-    echo Verifique:
-    echo   1. La base de datos MySQL esta corriendo
-    echo   2. Las credenciales de DB son correctas
-    echo   3. Las tablas necesarias existen
-    echo.
+    echo [!] La aplicación se cerró con código %errorlevel%.
+    echo Verifique que el servicio de MySQL esté iniciado.
     pause
-    exit /b 1
 )
-
-echo.
-echo Aplicacion cerrada correctamente.
-pause
