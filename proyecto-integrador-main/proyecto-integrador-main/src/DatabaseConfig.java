@@ -246,10 +246,11 @@ public class DatabaseConfig {
                     try (PreparedStatement ps = conn.prepareStatement(insertUser)) {
                         String[][] users = {
                             {"admin", "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9", "Administrador General", "administrador"},
-                            {"fernanda", "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92", "Fernanda Administradora", "administrador"},
-                            {"ashley", "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918", "Ashley", "empleada"},
-                            {"monika", "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4", "Monika", "empleada"},
-                            {"veronika", "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", "Veronika", "empleada"}
+                            {"fernanda", "a277c3ba4d39d7a49cc6507e1818e0d6ebc3d8621ccc63daec59829a6ae52ad9", "Fernanda Administradora", "administrador"},
+                            {"ashley", "2336e2ec1b97338056c1e64172acf13a6461d977ecbcb23cbec31d25de98e2ad", "Ashley", "empleada"},
+                            {"monika", "07e6f0ebf1ecce152c491cb7ac864e5ad8fa9e11d8be9127e18da867e2c42fa7", "Monika", "empleada"},
+                            {"veronika", "d6f1c8895277b7e7133bd4aaba2feb61d9b69f2f3a159670cd44b8dbc39a6973", "Veronika", "empleada"},
+                            {"empleada1", "e03d3ec8d5035f8721f5dc64546e59ed790dbcb3b7b598fe57057ccd7b683b00", "Empleada Demo", "empleada"}
                         };
                         for (String[] u : users) {
                             ps.setString(1, u[0]);

@@ -1,0 +1,24 @@
+﻿# Archivos compilados
+*.class
+out/
+
+# Base de datos H2 local
+*.mv.db
+*.trace.db
+
+# Configuracion local
+db_config.properties
+
+# Archivos de crash JVM
+hs_err_pid*.log
+replay_pid*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.form
+
+# OS
+Thumbs.db
+.DS_Store
