@@ -120,6 +120,9 @@ public class LoginSystemAremi extends JDialog {
         loginButton.setBackground(ROSA_OSCURO);
         loginButton.setForeground(Color.WHITE);
         loginButton.setFocusPainted(false);
+        loginButton.setOpaque(true);
+        loginButton.setBorderPainted(false);
+        loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         loginButton.setPreferredSize(new Dimension(130, 36));
 
         limpiarButton = new JButton("Limpiar");

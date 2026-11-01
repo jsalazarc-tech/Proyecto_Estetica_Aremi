@@ -73,6 +73,8 @@ public class MainApplication {
         btnCerrarSesion.setBackground(Color.WHITE);
         btnCerrarSesion.setForeground(ROSA_OSCURO);
         btnCerrarSesion.setFocusPainted(false);
+        btnCerrarSesion.setOpaque(true);
+        btnCerrarSesion.setBorderPainted(false);
         btnCerrarSesion.addActionListener(e -> {
             frame.dispose();
             SeguridadManager.cerrarSesion();
@@ -167,6 +169,9 @@ public class MainApplication {
         btnOpen.setBackground(ROSA_OSCURO);
         btnOpen.setForeground(Color.WHITE);
         btnOpen.setFocusPainted(false);
+        btnOpen.setOpaque(true);
+        btnOpen.setBorderPainted(false);
+        btnOpen.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnOpen.addActionListener(action);
 
         card.add(lblTitle, BorderLayout.NORTH);
