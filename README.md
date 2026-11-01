@@ -104,16 +104,9 @@ main (Producción estable)
 ## 💻 Instrucciones de Ejecución
 
 ### Requisitos Previos:
-- **Java JDK 17 o superior** (probado y compatible con JDK 21 y JDK 25).
-- Compatible con Windows 10 / 11.
+- **Java JDK 17 o superior** (probado y compatible con JDK 21 y JDK 25)
 
 ### Paso a paso:
-
-1. **Clonar o descargar el repositorio**:
-   ```bash
-   git clone https://github.com/jsalazarc-tech/Proyecto_Estetica_Aremi.git
-   cd Proyecto_Estetica_Aremi
-   ```
 
 2. **Compilar el proyecto**:
    Ejecuta el archivo:
@@ -126,8 +119,6 @@ main (Producción estable)
    ```cmd
    ejecutar.bat
    ```
-
-> 💡 **Nota:** La aplicación arranca por defecto en modo local de base de datos embebida, inicializando automáticamente las tablas y usuarios de prueba. Si deseas conectar a tu servidor MySQL local, pulsa el botón **"⚙ Configurar Conexión a Base de Datos"** en la pantalla de Login.
 
 ---
 
