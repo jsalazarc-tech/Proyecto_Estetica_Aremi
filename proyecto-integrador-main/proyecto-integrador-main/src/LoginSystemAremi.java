@@ -251,4 +251,22 @@ public class LoginSystemAremi extends JDialog {
     public boolean isLoginSuccessful() {
         return loginSuccessful;
     }
+
+    public static void main(String[] args) {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ignored) {}
+
+        SwingUtilities.invokeLater(() -> {
+            LoginSystemAremi login = new LoginSystemAremi();
+            login.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            login.setVisible(true);
+
+            if (login.isLoginSuccessful()) {
+                MainApplication.mostrarVentanaPrincipal();
+            } else {
+                System.exit(0);
+            }
+        });
+    }
 }
