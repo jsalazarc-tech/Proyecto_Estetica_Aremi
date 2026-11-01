@@ -1,15 +1,28 @@
 import java.sql.*;
-import javax.swing.JOptionPane;
 
 public class DatabaseConnection {
     private static boolean initialized = false;
 
     public static synchronized Connection getConnection() throws SQLException {
         try {
+            if (DatabaseConfig.isUseLocalDb()) {
+                try {
+                    Class.forName("org.h2.Driver");
+                } catch (ClassNotFoundException e) {
+                    // ignore
+                }
+            } else {
+                try {
+                    Class.forName("com.mysql.cj.jdbc.Driver");
+                } catch (ClassNotFoundException e) {
+                    // ignore
+                }
+            }
+
             Connection conn = DriverManager.getConnection(
                 DatabaseConfig.getUrl(),
-                DatabaseConfig.getUser(),
-                DatabaseConfig.getPassword()
+                DatabaseConfig.getEffectiveUser(),
+                DatabaseConfig.getEffectivePassword()
             );
 
             if (!initialized) {
@@ -17,30 +30,16 @@ public class DatabaseConnection {
                 initialized = true;
             }
             return conn;
+
         } catch (SQLException e) {
-            // Si la conexión falla (por ejemplo contraseña incorrecta), intentar conectar al servidor y/o mostrar diálogo
-            System.err.println("Aviso: Error de conexión inicial: " + e.getMessage());
-            return handleConnectionFailure(e);
+            // Si estaba en modo MySQL y falló la conexión, pasar automáticamente a Base de Datos Local
+            if (!DatabaseConfig.isUseLocalDb()) {
+                System.err.println("Aviso: MySQL no disponible (" + e.getMessage() + "). Cambiando a Base de Datos Local Integrada...");
+                DatabaseConfig.setUseLocalDb(true);
+                return getConnection();
+            }
+            throw e;
         }
-    }
-
-    private static synchronized Connection handleConnectionFailure(SQLException originalEx) throws SQLException {
-        // Mostrar diálogo de configuración para que el usuario ingrese sus credenciales correctas
-        ConfiguracionDBDialog dialog = new ConfiguracionDBDialog(null);
-        dialog.setVisible(true);
-
-        if (dialog.isConfiguradoConExito()) {
-            Connection conn = DriverManager.getConnection(
-                DatabaseConfig.getUrl(),
-                DatabaseConfig.getUser(),
-                DatabaseConfig.getPassword()
-            );
-            DatabaseConfig.initializeDatabase(conn);
-            initialized = true;
-            return conn;
-        }
-
-        throw originalEx;
     }
 
     public static void releaseConnection(Connection conn) {
@@ -63,7 +62,7 @@ public class DatabaseConnection {
 
     public static void guardarCita(String nombre, String telefono, String servicio,
                                    Date fecha, String hora) throws SQLException {
-        guardarCitaCompleta(null, nombre, telefono, null, servicio, null, "Sin asignar", fecha, hora, "Pendiente", "");
+        guardarCitaCompleta(null, nombre, telefono, null, servicio, null, "Ashley", fecha, hora, "Pendiente", "");
     }
 
     public static void guardarCitaCompleta(Integer idCliente, String nombre, String telefono,

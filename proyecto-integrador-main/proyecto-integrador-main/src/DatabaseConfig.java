@@ -1,11 +1,11 @@
 import java.io.*;
 import java.sql.*;
 import java.util.Properties;
-import javax.swing.*;
 
 public class DatabaseConfig {
     private static final String CONFIG_FILE = "db_config.properties";
 
+    private static boolean useLocalDb = true; // Por defecto modo local integrado sin contraseña para máxima compatibilidad
     private static String host = "127.0.0.1";
     private static String port = "3306";
     private static String dbName = "salon_aremi";
@@ -22,6 +22,7 @@ public class DatabaseConfig {
             Properties props = new Properties();
             try (FileInputStream fis = new FileInputStream(file)) {
                 props.load(fis);
+                useLocalDb = Boolean.parseBoolean(props.getProperty("db.use_local", "true"));
                 host = props.getProperty("db.host", host);
                 port = props.getProperty("db.port", port);
                 dbName = props.getProperty("db.name", dbName);
@@ -33,7 +34,8 @@ public class DatabaseConfig {
         }
     }
 
-    public static synchronized void saveConfig(String newHost, String newPort, String newDbName, String newUser, String newPass) {
+    public static synchronized void saveConfig(boolean local, String newHost, String newPort, String newDbName, String newUser, String newPass) {
+        useLocalDb = local;
         host = newHost;
         port = newPort;
         dbName = newDbName;
@@ -41,6 +43,7 @@ public class DatabaseConfig {
         password = newPass;
 
         Properties props = new Properties();
+        props.setProperty("db.use_local", String.valueOf(useLocalDb));
         props.setProperty("db.host", host);
         props.setProperty("db.port", port);
         props.setProperty("db.name", dbName);
@@ -48,11 +51,14 @@ public class DatabaseConfig {
         props.setProperty("db.password", password);
 
         try (FileOutputStream fos = new FileOutputStream(CONFIG_FILE)) {
-            props.store(fos, "Configuracion de conexion MySQL - Salon Aremi");
+            props.store(fos, "Configuracion de base de datos - Salon Aremi");
         } catch (Exception e) {
             System.err.println("Error guardando " + CONFIG_FILE + ": " + e.getMessage());
         }
     }
+
+    public static boolean isUseLocalDb() { return useLocalDb; }
+    public static void setUseLocalDb(boolean local) { useLocalDb = local; }
 
     public static String getHost() { return host; }
     public static String getPort() { return port; }
@@ -61,29 +67,46 @@ public class DatabaseConfig {
     public static String getPassword() { return password; }
 
     public static String getUrl() {
+        if (useLocalDb) {
+            return "jdbc:h2:./salon_aremi_db;MODE=MySQL;DATABASE_TO_LOWER=TRUE";
+        }
         return "jdbc:mysql://" + host + ":" + port + "/" + dbName + "?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true";
     }
 
-    public static String getServerUrl() {
-        return "jdbc:mysql://" + host + ":" + port + "/?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+    public static String getEffectiveUser() {
+        return useLocalDb ? "sa" : user;
     }
 
-    public static boolean testConnection(String h, String p, String db, String u, String pass) {
-        String testUrl = "jdbc:mysql://" + h + ":" + p + "/?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
-        try (Connection c = DriverManager.getConnection(testUrl, u, pass)) {
-            return c != null && !c.isClosed();
-        } catch (SQLException e) {
-            return false;
+    public static String getEffectivePassword() {
+        return useLocalDb ? "" : password;
+    }
+
+    public static boolean testConnection(boolean local, String h, String p, String db, String u, String pass) {
+        if (local) {
+            try {
+                Class.forName("org.h2.Driver");
+                try (Connection c = DriverManager.getConnection("jdbc:h2:./salon_aremi_db;MODE=MySQL;DATABASE_TO_LOWER=TRUE", "sa", "")) {
+                    return c != null && !c.isClosed();
+                }
+            } catch (Exception e) {
+                return false;
+            }
+        } else {
+            String testUrl = "jdbc:mysql://" + h + ":" + p + "/?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true";
+            try (Connection c = DriverManager.getConnection(testUrl, u, pass)) {
+                return c != null && !c.isClosed();
+            } catch (SQLException e) {
+                return false;
+            }
         }
     }
 
-    /**
-     * Inicializa la base de datos completa con tablas y datos semilla
-     */
     public static void initializeDatabase(Connection conn) {
         try (Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + dbName + " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-            stmt.executeUpdate("USE " + dbName);
+            if (!useLocalDb) {
+                stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS " + dbName + " CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                stmt.executeUpdate("USE " + dbName);
+            }
 
             // 1. Usuarios
             stmt.executeUpdate(
@@ -94,7 +117,7 @@ public class DatabaseConfig {
                 "  nombre_completo VARCHAR(100) NOT NULL," +
                 "  rol VARCHAR(20) NOT NULL DEFAULT 'empleada'," +
                 "  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                ")"
             );
 
             // 2. Empleadas
@@ -107,7 +130,7 @@ public class DatabaseConfig {
                 "  porcentaje_comision DECIMAL(5,2) NOT NULL," +
                 "  username VARCHAR(50) NULL," +
                 "  activo TINYINT(1) DEFAULT 1" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                ")"
             );
 
             // 3. Clientes
@@ -119,7 +142,7 @@ public class DatabaseConfig {
                 "  direccion VARCHAR(200)," +
                 "  email VARCHAR(100)," +
                 "  fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                ")"
             );
 
             // 4. Servicios
@@ -132,7 +155,7 @@ public class DatabaseConfig {
                 "  precio DECIMAL(10,2) NOT NULL," +
                 "  duracion_minutos INT DEFAULT 60," +
                 "  activo TINYINT(1) DEFAULT 1" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                ")"
             );
 
             // 5. Citas
@@ -151,7 +174,7 @@ public class DatabaseConfig {
                 "  estado VARCHAR(20) NOT NULL DEFAULT 'Pendiente'," +
                 "  notas VARCHAR(255)," +
                 "  fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                ")"
             );
 
             // 6. Servicios Realizados
@@ -172,7 +195,7 @@ public class DatabaseConfig {
                 "  estado_liquidacion VARCHAR(20) NOT NULL DEFAULT 'Pendiente'," +
                 "  id_liquidacion INT NULL," +
                 "  fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                ")"
             );
 
             // 7. Liquidaciones
@@ -190,7 +213,7 @@ public class DatabaseConfig {
                 "  total_salon DECIMAL(10,2) NOT NULL," +
                 "  fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP," +
                 "  notas VARCHAR(255)" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                ")"
             );
 
             // 8. Facturas
@@ -201,45 +224,45 @@ public class DatabaseConfig {
                 "  telefono VARCHAR(20)," +
                 "  valor_venta DECIMAL(10,2)," +
                 "  nombre_vendedor VARCHAR(100)," +
-                "  fecha_venta DATETIME DEFAULT CURRENT_TIMESTAMP" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+                "  fecha_venta TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
+                ")"
             );
 
             seedInitialData(conn);
 
         } catch (SQLException e) {
-            System.err.println("Error inicializando esquema de BD: " + e.getMessage());
+            System.err.println("Error inicializando esquema: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     private static void seedInitialData(Connection conn) {
         try {
-            // Seed Usuarios (SHA-256)
-            // 'admin123' -> 240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9
-            // 'fernanda123' -> 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
-            // 'ashley123' -> 8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
-            // 'monika123' -> 03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4
-            // 'veronika123' -> 5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5
-            String insertUser = "INSERT IGNORE INTO usuarios (username, password, nombre_completo, rol) VALUES (?, ?, ?, ?)";
-            try (PreparedStatement ps = conn.prepareStatement(insertUser)) {
-                String[][] users = {
-                    {"admin", "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9", "Administrador Principal", "administrador"},
-                    {"fernanda", "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92", "Fernanda Administradora", "administrador"},
-                    {"ashley", "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918", "Ashley", "empleada"},
-                    {"monika", "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4", "Monika", "empleada"},
-                    {"veronika", "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", "Veronika", "empleada"}
-                };
-                for (String[] u : users) {
-                    ps.setString(1, u[0]);
-                    ps.setString(2, u[1]);
-                    ps.setString(3, u[2]);
-                    ps.setString(4, u[3]);
-                    ps.executeUpdate();
+            // Verificar si existen usuarios
+            try (Statement s = conn.createStatement();
+                 ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM usuarios")) {
+                if (rs.next() && rs.getInt(1) == 0) {
+                    String insertUser = "INSERT INTO usuarios (username, password, nombre_completo, rol) VALUES (?, ?, ?, ?)";
+                    try (PreparedStatement ps = conn.prepareStatement(insertUser)) {
+                        String[][] users = {
+                            {"admin", "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9", "Administrador General", "administrador"},
+                            {"fernanda", "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92", "Fernanda Administradora", "administrador"},
+                            {"ashley", "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918", "Ashley", "empleada"},
+                            {"monika", "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4", "Monika", "empleada"},
+                            {"veronika", "5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5", "Veronika", "empleada"}
+                        };
+                        for (String[] u : users) {
+                            ps.setString(1, u[0]);
+                            ps.setString(2, u[1]);
+                            ps.setString(3, u[2]);
+                            ps.setString(4, u[3]);
+                            ps.executeUpdate();
+                        }
+                    }
                 }
             }
 
-            // Seed Empleadas según el PDF (Ashley 20% uñas, Monika 30% cejas, Veronika 50% depilación)
+            // Empleadas
             try (Statement s = conn.createStatement();
                  ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM empleadas")) {
                 if (rs.next() && rs.getInt(1) == 0) {
@@ -269,20 +292,20 @@ public class DatabaseConfig {
                 }
             }
 
-            // Seed Servicios iniciales
+            // Servicios
             try (Statement s = conn.createStatement();
                  ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM servicios")) {
                 if (rs.next() && rs.getInt(1) == 0) {
-                    String insertServ = "INSERT INTO servicios (nombre, descripcion, categoria, precio, duracion_minutos) VALUES (?, ?, ?, ?, ?)";
+                    String insertServ = "INSERT INTO servicios (nombre, descripcion, categoria, precio, duracion_minutos, activo) VALUES (?, ?, ?, ?, ?, 1)";
                     try (PreparedStatement ps = conn.prepareStatement(insertServ)) {
                         Object[][] servs = {
-                            {"Manicure Tradicional", "Limpieza, limado, cutícula y esmaltado", "Uñas y Manicure", 25000.0, 45},
-                            {"Uñas Acrílicas Esculpidas", "Extensión y diseño artístico de uñas", "Uñas y Manicure", 65000.0, 90},
+                            {"Manicure Tradicional", "Limpieza, limado, cutícula y esmaltado tradicional", "Uñas y Manicure", 25000.0, 45},
+                            {"Uñas Acrílicas Esculpidas", "Extensión y diseño artístico con acrílico", "Uñas y Manicure", 65000.0, 90},
                             {"Pedicure Spa", "Exfoliación, hidratación profunda y esmaltado", "Uñas y Manicure", 35000.0, 60},
-                            {"Diseño de Cejas con Henna", "Diseño personalizado, depilación y sombreado con henna", "Cejas", 30000.0, 45},
+                            {"Diseño de Cejas con Henna", "Diseño personalizado y pigmentación con henna", "Cejas", 30000.0, 45},
                             {"Micropigmentación de Cejas", "Técnica pelo a pelo semipermanente", "Cejas", 120000.0, 120},
-                            {"Depilación Facial Completa", "Cera suave para rostro, cejas y bozo", "Depilación", 25000.0, 30},
-                            {"Depilación de Piernas Completas", "Depilación con cera miel", "Depilación", 45000.0, 45},
+                            {"Depilación Facial Completa", "Cera suave para cejas, bozo y mentón", "Depilación", 25000.0, 30},
+                            {"Depilación Piernas Completas", "Depilación con cera miel nutritiva", "Depilación", 45000.0, 45},
                             {"Depilación Bikini Completo", "Cera especializada para zona íntima", "Depilación", 40000.0, 40}
                         };
                         for (Object[] row : servs) {
@@ -297,7 +320,7 @@ public class DatabaseConfig {
                 }
             }
 
-            // Seed Clientes iniciales
+            // Clientes
             try (Statement s = conn.createStatement();
                  ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM clientes")) {
                 if (rs.next() && rs.getInt(1) == 0) {
@@ -324,8 +347,18 @@ public class DatabaseConfig {
                 }
             }
 
+            // Citas
+            try (Statement s = conn.createStatement();
+                 ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM citas")) {
+                if (rs.next() && rs.getInt(1) == 0) {
+                    String insCita = "INSERT INTO citas (id_cliente, nombre_cliente, telefono_cliente, id_servicio, nombre_servicio, id_empleada, nombre_empleada, fecha, hora, estado, notas) " +
+                                     "VALUES (1, 'Valentina Gómez', '3154829103', 1, 'Manicure Tradicional', 1, 'Ashley', CURRENT_DATE, '10:00', 'Pendiente', 'Cliente regular')";
+                    s.executeUpdate(insCita);
+                }
+            }
+
         } catch (SQLException e) {
-            System.err.println("Error sembrando datos iniciales: " + e.getMessage());
+            System.err.println("Aviso sembrando datos: " + e.getMessage());
         }
     }
 }

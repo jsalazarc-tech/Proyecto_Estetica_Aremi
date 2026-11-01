@@ -2,41 +2,68 @@ import javax.swing.*;
 import java.awt.*;
 
 public class ConfiguracionDBDialog extends JDialog {
+    private JRadioButton rdoLocal, rdoMysql;
     private JTextField txtHost, txtPort, txtDbName, txtUser;
     private JPasswordField txtPassword;
     private JButton btnProbar, btnGuardar, btnCancelar;
     private JLabel lblStatus;
+    private JPanel mysqlFieldsPanel;
     private boolean configuradoConExito = false;
 
     public ConfiguracionDBDialog(Frame parent) {
-        super(parent, "Configuración de Base de Datos MySQL - Salón Aremi", true);
+        super(parent, "Configuración de Base de Datos - Salón AREMI", true);
         initComponents();
     }
 
     private void initComponents() {
-        setSize(480, 420);
+        setSize(520, 500);
         setLocationRelativeTo(getParent());
         setLayout(new BorderLayout());
         setResizable(false);
 
         Color rosaOscuro = new Color(219, 112, 147);
-        Color rosaClaro = new Color(255, 182, 193);
 
         JPanel headerPanel = new JPanel();
         headerPanel.setBackground(rosaOscuro);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
-        JLabel titleLabel = new JLabel("Configuración de Conexión MySQL");
+        JLabel titleLabel = new JLabel("Configuración de Base de Datos");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         titleLabel.setForeground(Color.WHITE);
         headerPanel.add(titleLabel);
         add(headerPanel, BorderLayout.NORTH);
 
-        JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBackground(Color.WHITE);
-        formPanel.setBorder(BorderFactory.createEmptyBorder(15, 25, 15, 25));
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(Color.WHITE);
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
+
+        // Selector de tipo de base de datos
+        JPanel typePanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        typePanel.setBackground(new Color(250, 245, 248));
+        typePanel.setBorder(BorderFactory.createTitledBorder("Tipo de Base de Datos"));
+
+        rdoLocal = new JRadioButton("Base de Datos Local Integrada (Sin contraseña, 100% lista para usar)", DatabaseConfig.isUseLocalDb());
+        rdoLocal.setOpaque(false);
+        rdoMysql = new JRadioButton("Servidor MySQL Local (Para conectar con MySQL Workbench / phpMyAdmin)", !DatabaseConfig.isUseLocalDb());
+        rdoMysql.setOpaque(false);
+
+        ButtonGroup bg = new ButtonGroup();
+        bg.add(rdoLocal);
+        bg.add(rdoMysql);
+
+        typePanel.add(rdoLocal);
+        typePanel.add(rdoMysql);
+        contentPanel.add(typePanel);
+        contentPanel.add(Box.createVerticalStrut(10));
+
+        // Campos para MySQL
+        mysqlFieldsPanel = new JPanel(new GridBagLayout());
+        mysqlFieldsPanel.setBackground(Color.WHITE);
+        mysqlFieldsPanel.setBorder(BorderFactory.createTitledBorder("Parámetros de Servidor MySQL"));
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(8, 5, 8, 5);
+        gbc.insets = new Insets(6, 6, 6, 6);
 
         txtHost = new JTextField(DatabaseConfig.getHost(), 15);
         txtPort = new JTextField(DatabaseConfig.getPort(), 15);
@@ -45,22 +72,21 @@ public class ConfiguracionDBDialog extends JDialog {
         txtPassword = new JPasswordField(DatabaseConfig.getPassword(), 15);
 
         int row = 0;
-        addFormField(formPanel, "Host / Servidor:", txtHost, gbc, row++);
-        addFormField(formPanel, "Puerto MySQL:", txtPort, gbc, row++);
-        addFormField(formPanel, "Nombre Base de Datos:", txtDbName, gbc, row++);
-        addFormField(formPanel, "Usuario MySQL:", txtUser, gbc, row++);
-        addFormField(formPanel, "Contraseña MySQL:", txtPassword, gbc, row++);
+        addFormField(mysqlFieldsPanel, "Servidor / Host:", txtHost, gbc, row++);
+        addFormField(mysqlFieldsPanel, "Puerto:", txtPort, gbc, row++);
+        addFormField(mysqlFieldsPanel, "Base de Datos:", txtDbName, gbc, row++);
+        addFormField(mysqlFieldsPanel, "Usuario MySQL:", txtUser, gbc, row++);
+        addFormField(mysqlFieldsPanel, "Contraseña MySQL:", txtPassword, gbc, row++);
 
-        lblStatus = new JLabel("Ingrese las credenciales de su MySQL local.");
+        contentPanel.add(mysqlFieldsPanel);
+        contentPanel.add(Box.createVerticalStrut(10));
+
+        lblStatus = new JLabel("Seleccione el modo que desea utilizar.");
         lblStatus.setFont(new Font("Segoe UI", Font.ITALIC, 12));
         lblStatus.setForeground(Color.DARK_GRAY);
-        gbc.gridx = 0;
-        gbc.gridy = row++;
-        gbc.gridwidth = 2;
-        gbc.anchor = GridBagConstraints.CENTER;
-        formPanel.add(lblStatus, gbc);
+        contentPanel.add(lblStatus);
 
-        add(formPanel, BorderLayout.CENTER);
+        add(contentPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 12));
         buttonPanel.setBackground(new Color(245, 245, 245));
@@ -78,14 +104,34 @@ public class ConfiguracionDBDialog extends JDialog {
         buttonPanel.add(btnCancelar);
 
         add(buttonPanel, BorderLayout.SOUTH);
+
+        // Actualizar visibilidad de campos
+        rdoLocal.addActionListener(e -> actualizarEstadoCampos());
+        rdoMysql.addActionListener(e -> actualizarEstadoCampos());
+        actualizarEstadoCampos();
+    }
+
+    private void actualizarEstadoCampos() {
+        boolean esMysql = rdoMysql.isSelected();
+        txtHost.setEnabled(esMysql);
+        txtPort.setEnabled(esMysql);
+        txtDbName.setEnabled(esMysql);
+        txtUser.setEnabled(esMysql);
+        txtPassword.setEnabled(esMysql);
+        if (!esMysql) {
+            lblStatus.setText("Modo Local activo: no requiere instalación ni contraseñas. Funciona de inmediato.");
+            lblStatus.setForeground(new Color(0, 130, 0));
+        } else {
+            lblStatus.setText("Modo MySQL activo: ingrese las credenciales de su MySQL local.");
+            lblStatus.setForeground(Color.DARK_GRAY);
+        }
     }
 
     private void addFormField(JPanel panel, String labelText, JComponent field, GridBagConstraints gbc, int row) {
         JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        label.setFont(new Font("Segoe UI", Font.BOLD, 12));
         gbc.gridx = 0;
         gbc.gridy = row;
-        gbc.gridwidth = 1;
         gbc.weightx = 0.35;
         panel.add(label, gbc);
 
@@ -95,33 +141,32 @@ public class ConfiguracionDBDialog extends JDialog {
     }
 
     private void probarConexion() {
+        boolean local = rdoLocal.isSelected();
         String h = txtHost.getText().trim();
         String p = txtPort.getText().trim();
         String db = txtDbName.getText().trim();
         String u = txtUser.getText().trim();
         String pass = new String(txtPassword.getPassword());
 
-        lblStatus.setText("Probando conexión a MySQL...");
-        lblStatus.setForeground(Color.BLUE);
-
-        boolean ok = DatabaseConfig.testConnection(h, p, db, u, pass);
+        boolean ok = DatabaseConfig.testConnection(local, h, p, db, u, pass);
         if (ok) {
-            lblStatus.setText("¡Conexión exitosa con el servidor MySQL! ✓");
+            lblStatus.setText("¡Conexión probada exitosamente! ✓");
             lblStatus.setForeground(new Color(0, 130, 0));
         } else {
-            lblStatus.setText("Error: no se pudo conectar. Verifique usuario o contraseña. ✗");
+            lblStatus.setText("Error al conectar. Verifique los datos o use el Modo Local. ✗");
             lblStatus.setForeground(Color.RED);
         }
     }
 
     private void guardarConfiguracion() {
+        boolean local = rdoLocal.isSelected();
         String h = txtHost.getText().trim();
         String p = txtPort.getText().trim();
         String db = txtDbName.getText().trim();
         String u = txtUser.getText().trim();
         String pass = new String(txtPassword.getPassword());
 
-        DatabaseConfig.saveConfig(h, p, db, u, pass);
+        DatabaseConfig.saveConfig(local, h, p, db, u, pass);
         configuradoConExito = true;
         dispose();
     }

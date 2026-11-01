@@ -1,28 +1,15 @@
 @echo off
-chcp 65001 >nul
 echo ===================================================
-echo   COMPILADOR - SISTEMA SALÓN DE BELLEZA AREMI
+echo   COMPILADOR - SALON DE BELLEZA AREMI
 echo ===================================================
 echo.
-
 if not exist "out" mkdir out
-
-echo [*] Compilando clases Java con codificación UTF-8...
+echo [*] Compilando clases Java...
 javac -encoding UTF-8 -d out -cp "lib/*;out" src/*.java
-
-if %errorlevel% neq 0 (
-    echo.
-    echo [X] ERROR: Hubo un fallo durante la compilación.
-    echo.
+if errorlevel 1 (
+    echo [X] Error durante la compilacion.
     pause
     exit /b 1
 )
-
-echo.
-echo ===================================================
-echo   [OK] COMPILACIÓN EXITOSA DE TODOS LOS MÓDULOS
-echo ===================================================
-echo.
-echo Para iniciar la aplicación, ejecute: ejecutar.bat
-echo.
+echo [OK] Compilacion exitosa.
 pause
