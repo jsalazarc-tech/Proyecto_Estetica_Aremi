@@ -109,6 +109,8 @@ public class LiquidacionComisionesGUI extends JFrame {
         btnConsultar = new JButton("Consultar Servicios");
         btnConsultar.setBackground(ROSA_OSCURO);
         btnConsultar.setForeground(Color.WHITE);
+        btnConsultar.setOpaque(true);
+        btnConsultar.setBorderPainted(false);
         filterPanel.add(btnConsultar);
 
         panel.add(filterPanel, BorderLayout.NORTH);
@@ -181,12 +183,16 @@ public class LiquidacionComisionesGUI extends JFrame {
         btnProcesarLiquidacion.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnProcesarLiquidacion.setBackground(ROSA_OSCURO);
         btnProcesarLiquidacion.setForeground(Color.WHITE);
+        btnProcesarLiquidacion.setOpaque(true);
+        btnProcesarLiquidacion.setBorderPainted(false);
         btnProcesarLiquidacion.setPreferredSize(new Dimension(280, 42));
 
         btnExportarPDF = new JButton("📄 Generar Comprobante PDF");
         btnExportarPDF.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnExportarPDF.setBackground(new Color(70, 130, 180));
         btnExportarPDF.setForeground(Color.WHITE);
+        btnExportarPDF.setOpaque(true);
+        btnExportarPDF.setBorderPainted(false);
         btnExportarPDF.setPreferredSize(new Dimension(230, 42));
         btnExportarPDF.setEnabled(false);
 
@@ -212,9 +218,16 @@ public class LiquidacionComisionesGUI extends JFrame {
         JPanel topBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         topBar.setBackground(Color.WHITE);
         btnRefrescarHistorico = new JButton("Actualizar Historial");
-        btnReimprimirPDF = new JButton("Reimprimir Comprobante PDF");
         btnRefrescarHistorico.setBackground(ROSA_OSCURO);
         btnRefrescarHistorico.setForeground(Color.WHITE);
+        btnRefrescarHistorico.setOpaque(true);
+        btnRefrescarHistorico.setBorderPainted(false);
+
+        btnReimprimirPDF = new JButton("Reimprimir Comprobante PDF");
+        btnReimprimirPDF.setBackground(new Color(70, 130, 180));
+        btnReimprimirPDF.setForeground(Color.WHITE);
+        btnReimprimirPDF.setOpaque(true);
+        btnReimprimirPDF.setBorderPainted(false);
 
         topBar.add(btnRefrescarHistorico);
         topBar.add(btnReimprimirPDF);

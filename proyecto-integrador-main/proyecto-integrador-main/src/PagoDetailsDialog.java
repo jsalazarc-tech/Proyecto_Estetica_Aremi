@@ -63,6 +63,8 @@ public class PagoDetailsDialog extends JDialog {
         guardarButton = new JButton("Guardar");
         guardarButton.setBackground(new Color(219, 112, 147)); // Rosa oscuro
         guardarButton.setForeground(Color.WHITE);
+        guardarButton.setOpaque(true);
+        guardarButton.setBorderPainted(false);
         guardarButton.setFocusPainted(false);
         guardarButton.addActionListener(new ActionListener() {
             @Override

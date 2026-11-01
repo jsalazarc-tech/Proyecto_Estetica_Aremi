@@ -64,6 +64,8 @@ public class Pago {
         regresarButton = new JButton("Regresar");
         regresarButton.setBackground(new Color(219, 112, 147)); // Rosa oscuro
         regresarButton.setForeground(Color.WHITE);
+        regresarButton.setOpaque(true);
+        regresarButton.setBorderPainted(false);
         regresarButton.setFocusPainted(false);
         regresarButton.addActionListener(new ActionListener() {
             @Override
@@ -76,6 +78,8 @@ public class Pago {
         pagarButton = new JButton("Pagar");
         pagarButton.setBackground(new Color(219, 112, 147)); // Rosa oscuro
         pagarButton.setForeground(Color.WHITE);
+        pagarButton.setOpaque(true);
+        pagarButton.setBorderPainted(false);
         pagarButton.setFocusPainted(false);
         pagarButton.addActionListener(new ActionListener() {
             @Override

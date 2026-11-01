@@ -92,8 +92,22 @@ public class ConfiguracionDBDialog extends JDialog {
         buttonPanel.setBackground(new Color(245, 245, 245));
 
         btnProbar = new JButton("Probar Conexión");
+        btnProbar.setBackground(new Color(70, 130, 180));
+        btnProbar.setForeground(Color.WHITE);
+        btnProbar.setOpaque(true);
+        btnProbar.setBorderPainted(false);
+
         btnGuardar = new JButton("Guardar y Continuar");
+        btnGuardar.setBackground(rosaOscuro);
+        btnGuardar.setForeground(Color.WHITE);
+        btnGuardar.setOpaque(true);
+        btnGuardar.setBorderPainted(false);
+
         btnCancelar = new JButton("Cancelar");
+        btnCancelar.setBackground(new Color(220, 220, 220));
+        btnCancelar.setForeground(Color.BLACK);
+        btnCancelar.setOpaque(true);
+        btnCancelar.setBorderPainted(false);
 
         btnProbar.addActionListener(e -> probarConexion());
         btnGuardar.addActionListener(e -> guardarConfiguracion());

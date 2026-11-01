@@ -115,10 +115,15 @@ public class ServiciosRealizadosGUI extends JFrame {
         btnRegistrar = new JButton("Guardar Servicio Realizado");
         btnRegistrar.setBackground(ROSA_OSCURO);
         btnRegistrar.setForeground(Color.WHITE);
+        btnRegistrar.setOpaque(true);
+        btnRegistrar.setBorderPainted(false);
         btnRegistrar.setFont(new Font("Segoe UI", Font.BOLD, 13));
 
         btnLimpiar = new JButton("Limpiar");
         btnLimpiar.setBackground(new Color(220, 220, 220));
+        btnLimpiar.setForeground(Color.BLACK);
+        btnLimpiar.setOpaque(true);
+        btnLimpiar.setBorderPainted(false);
 
         btnPanel.add(btnRegistrar);
         btnPanel.add(btnLimpiar);
@@ -139,6 +144,8 @@ public class ServiciosRealizadosGUI extends JFrame {
         btnRefrescar = new JButton("Refrescar");
         btnRefrescar.setBackground(new Color(70, 130, 180));
         btnRefrescar.setForeground(Color.WHITE);
+        btnRefrescar.setOpaque(true);
+        btnRefrescar.setBorderPainted(false);
         tableHeader.add(btnRefrescar);
         tablePanel.add(tableHeader, BorderLayout.NORTH);
 

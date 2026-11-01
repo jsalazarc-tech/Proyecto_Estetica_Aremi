@@ -171,11 +171,16 @@ public class AgendarCitaGUI extends JFrame {
         btnAgendar.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnAgendar.setBackground(ROSA_OSCURO);
         btnAgendar.setForeground(Color.WHITE);
+        btnAgendar.setOpaque(true);
+        btnAgendar.setBorderPainted(false);
         btnAgendar.setPreferredSize(new Dimension(270, 40));
 
         btnLimpiar = new JButton("Limpiar Formulario");
         btnLimpiar.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         btnLimpiar.setBackground(new Color(230, 230, 230));
+        btnLimpiar.setForeground(Color.BLACK);
+        btnLimpiar.setOpaque(true);
+        btnLimpiar.setBorderPainted(false);
         btnLimpiar.setPreferredSize(new Dimension(160, 40));
 
         btnPanel.add(btnAgendar);
@@ -225,6 +230,8 @@ public class AgendarCitaGUI extends JFrame {
         btnRefrescar = new JButton("Filtrar / Refrescar");
         btnRefrescar.setBackground(ROSA_OSCURO);
         btnRefrescar.setForeground(Color.WHITE);
+        btnRefrescar.setOpaque(true);
+        btnRefrescar.setBorderPainted(false);
         filterPanel.add(btnRefrescar);
 
         panel.add(filterPanel, BorderLayout.NORTH);
@@ -260,11 +267,15 @@ public class AgendarCitaGUI extends JFrame {
         btnMarcarRealizada.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnMarcarRealizada.setBackground(new Color(46, 139, 87));
         btnMarcarRealizada.setForeground(Color.WHITE);
+        btnMarcarRealizada.setOpaque(true);
+        btnMarcarRealizada.setBorderPainted(false);
 
         btnCancelarCita = new JButton("✖ Cancelar Cita");
         btnCancelarCita.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnCancelarCita.setBackground(new Color(205, 92, 92));
         btnCancelarCita.setForeground(Color.WHITE);
+        btnCancelarCita.setOpaque(true);
+        btnCancelarCita.setBorderPainted(false);
 
         bottomActions.add(btnMarcarRealizada);
         bottomActions.add(btnCancelarCita);

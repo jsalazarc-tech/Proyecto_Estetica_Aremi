@@ -128,7 +128,10 @@ public class LoginSystemAremi extends JDialog {
         limpiarButton = new JButton("Limpiar");
         limpiarButton.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         limpiarButton.setBackground(new Color(230, 230, 230));
+        limpiarButton.setForeground(Color.BLACK);
         limpiarButton.setFocusPainted(false);
+        limpiarButton.setOpaque(true);
+        limpiarButton.setBorderPainted(false);
         limpiarButton.setPreferredSize(new Dimension(100, 36));
 
         btnPanel.add(loginButton);

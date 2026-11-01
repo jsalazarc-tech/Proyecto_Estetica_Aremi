@@ -87,11 +87,20 @@ public class GestionEmpleadasGUI extends JFrame {
 
         btnGuardar.setBackground(ROSA_OSCURO);
         btnGuardar.setForeground(Color.WHITE);
+        btnGuardar.setOpaque(true);
+        btnGuardar.setBorderPainted(false);
         btnEditar.setBackground(new Color(70, 130, 180));
         btnEditar.setForeground(Color.WHITE);
+        btnEditar.setOpaque(true);
+        btnEditar.setBorderPainted(false);
         btnEliminar.setBackground(new Color(220, 70, 70));
         btnEliminar.setForeground(Color.WHITE);
-        btnLimpiar.setBackground(new Color(200, 200, 200));
+        btnEliminar.setOpaque(true);
+        btnEliminar.setBorderPainted(false);
+        btnLimpiar.setBackground(new Color(220, 220, 220));
+        btnLimpiar.setForeground(Color.BLACK);
+        btnLimpiar.setOpaque(true);
+        btnLimpiar.setBorderPainted(false);
 
         btnPanelForm.add(btnGuardar);
         btnPanelForm.add(btnEditar);
