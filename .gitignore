@@ -1,24 +1,47 @@
-﻿# Archivos compilados
+# ========================================================
+# GitIgnore - Salón de Belleza AREMI
+# Excluye binarios, bases de datos locales y configuraciones
+# ========================================================
+
+# Binarios y clases compiladas
 *.class
+**/*.class
 out/
+**/out/
+bin/
+**/bin/
 
-# Base de datos H2 local
+# Base de datos local H2 y locks
 *.mv.db
+**/*.mv.db
 *.trace.db
+**/*.trace.db
+salon_aremi_db*
 
-# Configuracion local
+# Archivo de propiedades con credenciales locales
+db.properties
+**/db.properties
 db_config.properties
+**/db_config.properties
 
-# Archivos de crash JVM
+# Archivos temporales de compilación y logs
+sources.txt
+**/sources.txt
 hs_err_pid*.log
 replay_pid*.log
+*.log
 
-# IDE
+# Archivos de IDE (IntelliJ IDEA, Eclipse, VS Code)
 .idea/
+**/.idea/
 *.iml
+**/*.iml
 .vscode/
-*.form
+**/.vscode/
+.settings/
+.classpath
+.project
 
-# OS
+# Archivos del Sistema Operativo
 Thumbs.db
 .DS_Store
