@@ -1,0 +1,10 @@
+# Configuracion de Conexion - Salon de Belleza AREMI
+# Si db.usar_local=true, el sistema usara la base de datos embebida H2 (no requiere instalar MySQL ni ingresar claves).
+# Si db.usar_local=false, conectara al servidor MySQL especificado en host y puerto.
+
+db.usar_local=true
+db.host=127.0.0.1
+db.puerto=3306
+db.nombre=salon_aremi
+db.usuario=root
+db.password=
