@@ -1,10 +1,8 @@
-import javax.swing.*;
-
+/**
+ * Punto de entrada alternativo.
+ */
 public class Main {
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            SalonBelleza salon = new SalonBelleza();
-            salon.setVisible(true);
-        });
+        view.MainApplication.main(args);
     }
 }

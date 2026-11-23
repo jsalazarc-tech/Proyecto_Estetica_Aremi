@@ -1,11 +1,11 @@
 @echo off
 echo ===================================================
-echo   SALON DE BELLEZA AREMI - Iniciando...
+echo   SALON DE BELLEZA AREMI - Iniciando Sistema...
 echo ===================================================
 echo.
-java -Xms16m -Xmx96m -XX:+UseSerialGC -XX:MaxMetaspaceSize=64m -cp "out;lib/*" MainApplication
+java -cp "out;lib/*" view.MainApplication
 if errorlevel 1 (
     echo.
-    echo [X] Error ejecutando la aplicacion.
+    echo [X] Error ejecutando la aplicacion. Verifique que Java este instalado.
     pause
 )
