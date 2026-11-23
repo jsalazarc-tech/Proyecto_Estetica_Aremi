@@ -45,3 +45,10 @@ replay_pid*.log
 # Archivos del Sistema Operativo
 Thumbs.db
 .DS_Store
+
+*.docx
+generar_*.py
+*.html
+DOCUMENTO_*.md
+GUIA_*.md
+
