@@ -136,6 +136,29 @@ public class EmpleadoDAO {
         }
     }
 
+    public boolean eliminar(int id) throws SQLException {
+        try (Connection conn = ConexionBD.getInstancia().getConexion()) {
+            // Desvincular de citas si existen
+            try (PreparedStatement ps = conn.prepareStatement("UPDATE citas SET id_empleada = NULL WHERE id_empleada = ?")) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            } catch (SQLException ignored) {}
+
+            // Desvincular de servicios realizados
+            try (PreparedStatement ps = conn.prepareStatement("UPDATE servicios_realizados SET id_empleada = 0 WHERE id_empleada = ?")) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+            } catch (SQLException ignored) {}
+
+            // Eliminar empleado de la tabla
+            String sql = "DELETE FROM empleadas WHERE id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, id);
+                return ps.executeUpdate() > 0;
+            }
+        }
+    }
+
     private Empleado mapearEmpleado(ResultSet rs) throws SQLException {
         String dir = "";
         String em = "";

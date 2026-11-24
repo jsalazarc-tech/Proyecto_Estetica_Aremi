@@ -204,8 +204,34 @@ public class ServiciosRealizadosGUI extends JFrame {
     private void cargarCombos() {
         cboEmpleada.removeAllItems();
         try {
+            boolean esAdmin = util.SeguridadManager.esAdministrador();
+            Integer idActual = util.SeguridadManager.getIdEmpleadaActual();
+            String userActual = util.SeguridadManager.getUsuarioActual();
+
             List<Empleado> emps = empleadoController.listarActivas();
-            for (Empleado e : emps) cboEmpleada.addItem(e);
+            for (Empleado e : emps) {
+                if (esAdmin) {
+                    cboEmpleada.addItem(e);
+                } else {
+                    boolean coincide = (idActual != null && e.getId() == idActual) ||
+                                       (e.getUsername() != null && e.getUsername().equalsIgnoreCase(userActual)) ||
+                                       (e.getNombre() != null && (e.getNombre().equalsIgnoreCase(userActual) || e.getNombre().toLowerCase().contains(userActual.toLowerCase())));
+                    if (coincide) {
+                        cboEmpleada.addItem(e);
+                    }
+                }
+            }
+
+            if (!esAdmin) {
+                if (cboEmpleada.getItemCount() == 0) {
+                    Empleado miEmp = empleadoController.obtenerPorUsername(userActual);
+                    if (miEmp != null) cboEmpleada.addItem(miEmp);
+                }
+                if (cboEmpleada.getItemCount() > 0) {
+                    cboEmpleada.setSelectedIndex(0);
+                    cboEmpleada.setEnabled(false);
+                }
+            }
         } catch (Exception ignored) {}
 
         cboServicio.removeAllItems();
@@ -283,7 +309,27 @@ public class ServiciosRealizadosGUI extends JFrame {
     private void cargarTablaServiciosRealizados() {
         modeloTabla.setRowCount(0);
         try {
-            List<ServicioRealizado> lista = realizadoController.listarTodos();
+            boolean esAdmin = util.SeguridadManager.esAdministrador();
+            List<ServicioRealizado> lista;
+
+            if (esAdmin) {
+                lista = realizadoController.listarTodos();
+            } else {
+                Empleado miEmp = (cboEmpleada.getItemCount() > 0) ? (Empleado) cboEmpleada.getSelectedItem() : null;
+                Integer idEmp = (miEmp != null) ? miEmp.getId() : util.SeguridadManager.getIdEmpleadaActual();
+                if (idEmp != null && idEmp > 0) {
+                    lista = realizadoController.listarPorEmpleada(idEmp);
+                } else {
+                    lista = new java.util.ArrayList<>();
+                    String miNombre = util.SeguridadManager.getUsuarioActual();
+                    for (ServicioRealizado sr : realizadoController.listarTodos()) {
+                        if (sr.getNombreEmpleada() != null && sr.getNombreEmpleada().toLowerCase().contains(miNombre.toLowerCase())) {
+                            lista.add(sr);
+                        }
+                    }
+                }
+            }
+
             for (ServicioRealizado sr : lista) {
                 modeloTabla.addRow(new Object[]{
                     sr.getId(),
@@ -308,5 +354,6 @@ public class ServiciosRealizadosGUI extends JFrame {
         txtValorCobrado.setText("");
         txtComisionCalculada.setText("");
         txtFecha.setText(LocalDate.now().toString());
+        recalcular();
     }
 }

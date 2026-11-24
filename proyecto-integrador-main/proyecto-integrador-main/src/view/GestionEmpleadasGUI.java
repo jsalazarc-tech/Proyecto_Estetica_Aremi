@@ -20,7 +20,7 @@ public class GestionEmpleadasGUI extends JFrame {
     private JCheckBox chkActivo;
     private JTable tablaEmpleadas;
     private DefaultTableModel modeloTabla;
-    private JButton btnGuardar, btnEditar, btnEliminar, btnLimpiar;
+    private JButton btnGuardar, btnEditar, btnInactivar, btnEliminar, btnLimpiar;
     private int empleadaSeleccionadaId = -1;
 
     private static final Color ROSA_OSCURO = new Color(219, 112, 147);
@@ -97,12 +97,13 @@ public class GestionEmpleadasGUI extends JFrame {
         gbc.gridy = row++;
         formPanel.add(chkActivo, gbc);
 
-        // Botones
-        JPanel btnPanelForm = new JPanel(new GridLayout(2, 2, 8, 8));
+        // Botones de acción organizados
+        JPanel btnPanelForm = new JPanel(new GridLayout(3, 2, 8, 8));
         btnPanelForm.setOpaque(false);
         btnGuardar = new JButton("Guardar");
         btnEditar = new JButton("Actualizar");
-        btnEliminar = new JButton("Inactivar / Borrar");
+        btnInactivar = new JButton("Inactivar");
+        btnEliminar = new JButton("Eliminar de Lista");
         btnLimpiar = new JButton("Limpiar");
 
         btnGuardar.setBackground(ROSA_OSCURO);
@@ -117,13 +118,19 @@ public class GestionEmpleadasGUI extends JFrame {
         btnEditar.setBorderPainted(false);
         btnEditar.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        btnEliminar.setBackground(new Color(205, 92, 92));
+        btnInactivar.setBackground(new Color(230, 126, 34)); // Naranja
+        btnInactivar.setForeground(Color.WHITE);
+        btnInactivar.setOpaque(true);
+        btnInactivar.setBorderPainted(false);
+        btnInactivar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        btnEliminar.setBackground(new Color(205, 92, 92)); // Rojo suave
         btnEliminar.setForeground(Color.WHITE);
         btnEliminar.setOpaque(true);
         btnEliminar.setBorderPainted(false);
         btnEliminar.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        btnLimpiar.setBackground(new Color(160, 160, 160));
+        btnLimpiar.setBackground(new Color(140, 150, 160));
         btnLimpiar.setForeground(Color.WHITE);
         btnLimpiar.setOpaque(true);
         btnLimpiar.setBorderPainted(false);
@@ -131,6 +138,7 @@ public class GestionEmpleadasGUI extends JFrame {
 
         btnPanelForm.add(btnGuardar);
         btnPanelForm.add(btnEditar);
+        btnPanelForm.add(btnInactivar);
         btnPanelForm.add(btnEliminar);
         btnPanelForm.add(btnLimpiar);
 
@@ -170,7 +178,8 @@ public class GestionEmpleadasGUI extends JFrame {
         // Listeners
         btnGuardar.addActionListener(e -> guardarEmpleada());
         btnEditar.addActionListener(e -> actualizarEmpleada());
-        btnEliminar.addActionListener(e -> desactivarEmpleada());
+        btnInactivar.addActionListener(e -> inactivarActivarEmpleado());
+        btnEliminar.addActionListener(e -> eliminarEmpleadoDefinitivo());
         btnLimpiar.addActionListener(e -> limpiarFormulario());
 
         tablaEmpleadas.getSelectionModel().addListSelectionListener(e -> {
@@ -188,7 +197,9 @@ public class GestionEmpleadasGUI extends JFrame {
                     String rolVal = (String) modeloTabla.getValueAt(sel, 8);
                     cboRol.setSelectedItem("administrador".equalsIgnoreCase(rolVal) ? "Administrador" : "Empleada");
                     txtPassword.setText("");
-                    chkActivo.setSelected("Activo".equals(modeloTabla.getValueAt(sel, 9)));
+                    boolean esActivo = "Activo".equals(modeloTabla.getValueAt(sel, 9));
+                    chkActivo.setSelected(esActivo);
+                    btnInactivar.setText(esActivo ? "Inactivar" : "Activar");
                 }
             }
         });
@@ -306,20 +317,56 @@ public class GestionEmpleadasGUI extends JFrame {
         }
     }
 
-    private void desactivarEmpleada() {
+    private void inactivarActivarEmpleado() {
         if (empleadaSeleccionadaId == -1) {
-            JOptionPane.showMessageDialog(this, "Seleccione un empleado para inactivar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Seleccione un empleado de la tabla para cambiar su estado.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        int confirm = JOptionPane.showConfirmDialog(this, "¿Desea cambiar el estado a inactivo del empleado seleccionado?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        boolean esActivo = chkActivo.isSelected();
+        boolean nuevoEstado = !esActivo;
+        String accion = nuevoEstado ? "ACTIVAR" : "INACTIVAR";
+
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "¿Desea " + accion + " al empleado seleccionado?",
+            "Cambiar Estado",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                empleadoController.desactivarEmpleado(empleadaSeleccionadaId);
-                JOptionPane.showMessageDialog(this, "Estado actualizado con éxito.");
+                empleadoController.cambiarEstadoEmpleado(empleadaSeleccionadaId, nuevoEstado);
+                JOptionPane.showMessageDialog(this, "Estado actualizado con éxito: Empleado " + (nuevoEstado ? "Activo" : "Inactivo") + ".");
                 limpiarFormulario();
                 cargarEmpleadas();
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private void eliminarEmpleadoDefinitivo() {
+        if (empleadaSeleccionadaId == -1) {
+            JOptionPane.showMessageDialog(this, "Seleccione el empleado que desea borrar de la lista.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String nombreEmp = txtNombre.getText().trim();
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "¿Está seguro de que desea BORRAR DEFINITIVAMENTE a '" + nombreEmp + "' de la lista y del sistema?\n\n" +
+            "Esta acción eliminará el registro de la lista de empleados.",
+            "Confirmar Eliminación Definitiva",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                empleadoController.eliminarEmpleado(empleadaSeleccionadaId);
+                JOptionPane.showMessageDialog(this, "Empleado eliminado exitosamente de la lista.");
+                limpiarFormulario();
+                cargarEmpleadas();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "No se pudo eliminar el empleado: " + e.getMessage(), "Error al Eliminar", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -336,6 +383,7 @@ public class GestionEmpleadasGUI extends JFrame {
         txtPassword.setText("");
         cboRol.setSelectedIndex(0);
         chkActivo.setSelected(true);
+        btnInactivar.setText("Inactivar");
         tablaEmpleadas.clearSelection();
     }
 }

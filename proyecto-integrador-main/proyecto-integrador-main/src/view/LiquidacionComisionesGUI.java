@@ -169,26 +169,14 @@ public class LiquidacionComisionesGUI extends JFrame {
         JPanel actionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 5));
         actionsPanel.setOpaque(false);
 
-        btnExportarPDF = new JButton("Generar Comprobante PDF") {
-            @Override
-            public void setEnabled(boolean b) {
-                super.setEnabled(b);
-                if (b) {
-                    setBackground(new Color(70, 130, 180));
-                    setForeground(Color.WHITE);
-                } else {
-                    setBackground(new Color(225, 230, 235));
-                    setForeground(new Color(130, 140, 150));
-                }
-            }
-        };
+        btnExportarPDF = new JButton("Generar Comprobante PDF");
         btnExportarPDF.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnExportarPDF.setBackground(new Color(225, 230, 235));
-        btnExportarPDF.setForeground(new Color(130, 140, 150));
+        btnExportarPDF.setBackground(new Color(70, 130, 180));
+        btnExportarPDF.setForeground(Color.WHITE);
         btnExportarPDF.setOpaque(true);
         btnExportarPDF.setBorderPainted(false);
         btnExportarPDF.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnExportarPDF.setEnabled(false);
+        btnExportarPDF.setEnabled(true);
 
         btnProcesarLiquidacion = new JButton("Procesar y Guardar Liquidación");
         btnProcesarLiquidacion.setFont(new Font("Segoe UI", Font.BOLD, 13));
@@ -315,7 +303,7 @@ public class LiquidacionComisionesGUI extends JFrame {
             lblTotalComision.setText("$" + String.format("%,.0f", comision));
             lblTotalSalon.setText("$" + String.format("%,.0f", salon));
 
-            btnExportarPDF.setEnabled(false);
+            btnExportarPDF.setEnabled(true);
 
             if (ultimosPendientes.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "No hay servicios pendientes de liquidar para " + emp.getNombre() + " en este rango de fechas.", "Información", JOptionPane.INFORMATION_MESSAGE);
@@ -366,12 +354,59 @@ public class LiquidacionComisionesGUI extends JFrame {
     }
 
     private void exportarPDF() {
-        if (ultimoIdLiquidacionGuardado <= 0) {
-            JOptionPane.showMessageDialog(this, "Primero debe procesar una liquidación.", "Aviso", JOptionPane.WARNING_MESSAGE);
+        Empleado emp = (Empleado) cboEmpleada.getSelectedItem();
+        if (emp == null) {
+            JOptionPane.showMessageDialog(this, "Por favor seleccione una empleada.", "Aviso", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        Empleado emp = (Empleado) cboEmpleada.getSelectedItem();
+        // Si no se han cargado servicios y no hay liquidacion guardada, consultar primero
+        if (ultimosPendientes.isEmpty() && ultimoIdLiquidacionGuardado <= 0) {
+            consultarServiciosPendientes();
+        }
+
+        if (ultimosPendientes.isEmpty() && ultimoIdLiquidacionGuardado <= 0) {
+            JOptionPane.showMessageDialog(this,
+                "No hay servicios pendientes de liquidar para " + emp.getNombre() + " en el rango de fechas indicado.\n" +
+                "Seleccione un rango de fechas con servicios o registre servicios realizados.",
+                "Sin Servicios",
+                JOptionPane.INFORMATION_MESSAGE
+            );
+            return;
+        }
+
+        // Si aún no se ha guardado en la base de datos, asentar la liquidación automáticamente al exportar
+        if (ultimoIdLiquidacionGuardado <= 0) {
+            int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Se procesará y emitirá el comprobante oficial de pago para " + emp.getNombre() + ":\n\n" +
+                "Servicios incluidos: " + ultimosPendientes.size() + "\n" +
+                "Total Comisión a Pagar: $" + String.format("%,.0f", ultimaComisionTotal) + " COP\n" +
+                "Ganancia Salón: $" + String.format("%,.0f", ultimoSalonTotal) + " COP\n\n" +
+                "¿Desea generar el comprobante PDF ahora?",
+                "Emitir Comprobante PDF",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+            if (confirm != JOptionPane.YES_OPTION) {
+                return;
+            }
+
+            try {
+                Date fIni = Date.valueOf(txtFechaInicio.getText().trim());
+                Date fFin = Date.valueOf(txtFechaFin.getText().trim());
+
+                ultimoIdLiquidacionGuardado = liquidacionController.procesarLiquidacion(
+                    emp.getId(), emp.getNombre(), emp.getEspecialidad(),
+                    fIni, fFin, emp.getPorcentajeComision(), "Comprobante oficial emitido."
+                );
+                cargarHistorico();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al asentar la liquidación: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+
         try {
             String ruta = liquidacionController.exportarComprobantePDF(
                 ultimoIdLiquidacionGuardado,
@@ -390,7 +425,7 @@ public class LiquidacionComisionesGUI extends JFrame {
             String avisoCorreo = (emp.getEmail() != null && !emp.getEmail().trim().isEmpty())
                 ? "\n\nNotificación de pago lista para enviar al correo de la empleada:\n" + emp.getEmail()
                 : "";
-            JOptionPane.showMessageDialog(this, "Comprobante PDF generado exitosamente en:\n" + ruta + avisoCorreo);
+            JOptionPane.showMessageDialog(this, "Comprobante PDF generado exitosamente en:\n" + ruta + avisoCorreo, "Comprobante Generado", JOptionPane.INFORMATION_MESSAGE);
             try {
                 Desktop.getDesktop().open(new File(ruta));
             } catch (Exception ignored) {}

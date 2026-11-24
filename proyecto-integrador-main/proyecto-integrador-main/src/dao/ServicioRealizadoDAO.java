@@ -77,6 +77,41 @@ public class ServicioRealizadoDAO {
         return lista;
     }
 
+    public List<ServicioRealizado> listarPorEmpleada(int idEmpleada) throws SQLException {
+        List<ServicioRealizado> lista = new ArrayList<>();
+        String sql = "SELECT id, id_cita, id_empleada, nombre_empleada, id_servicio, nombre_servicio, " +
+                     "id_cliente, nombre_cliente, fecha, valor_cobrado, porcentaje_comision, " +
+                     "comision_calculada, estado_liquidacion, id_liquidacion " +
+                     "FROM servicios_realizados WHERE id_empleada = ? ORDER BY fecha DESC, id DESC";
+
+        try (Connection conn = ConexionBD.getInstancia().getConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, idEmpleada);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ServicioRealizado sr = new ServicioRealizado(
+                        (Integer) rs.getObject("id_cita"),
+                        rs.getInt("id_empleada"),
+                        rs.getString("nombre_empleada"),
+                        rs.getInt("id_servicio"),
+                        rs.getString("nombre_servicio"),
+                        (Integer) rs.getObject("id_cliente"),
+                        rs.getString("nombre_cliente"),
+                        rs.getDate("fecha"),
+                        rs.getDouble("valor_cobrado"),
+                        rs.getDouble("porcentaje_comision")
+                    );
+                    sr.setId(rs.getInt("id"));
+                    sr.setComisionCalculada(rs.getDouble("comision_calculada"));
+                    sr.setEstadoLiquidacion(rs.getString("estado_liquidacion"));
+                    sr.setIdLiquidacion((Integer) rs.getObject("id_liquidacion"));
+                    lista.add(sr);
+                }
+            }
+        }
+        return lista;
+    }
+
     public List<ServicioRealizado> listarPendientesPorEmpleadaYFechas(int idEmpleada, Date fechaInicio, Date fechaFin) throws SQLException {
         List<ServicioRealizado> lista = new ArrayList<>();
         String sql = "SELECT id, id_cita, id_empleada, nombre_empleada, id_servicio, nombre_servicio, " +

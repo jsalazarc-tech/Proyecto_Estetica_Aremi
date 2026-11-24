@@ -6,6 +6,7 @@ import model.Empleado;
 import model.Usuario;
 import util.SeguridadManager;
 import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Controlador de Autenticación y Seguridad (RNF-01, RNF-05).
@@ -35,6 +36,19 @@ public class AuthController {
             Integer idEmpleada = null;
             if (usuario.esEmpleada()) {
                 Empleado emp = empleadoDAO.buscarPorUsername(usuario.getUsername());
+                if (emp == null) {
+                    List<Empleado> todas = empleadoDAO.listarTodos();
+                    for (Empleado e : todas) {
+                        if (e.getUsername() != null && e.getUsername().equalsIgnoreCase(usuario.getUsername())) {
+                            emp = e;
+                            break;
+                        }
+                        if (e.getNombre() != null && (e.getNombre().equalsIgnoreCase(usuario.getUsername()) || e.getNombre().equalsIgnoreCase(usuario.getNombreCompleto()))) {
+                            emp = e;
+                            break;
+                        }
+                    }
+                }
                 if (emp != null) idEmpleada = emp.getId();
             }
             SeguridadManager.setUsuarioActual(usuario.getUsername(), usuario.getRol(), usuario.getNombreCompleto(), idEmpleada);

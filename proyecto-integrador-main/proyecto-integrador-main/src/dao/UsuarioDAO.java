@@ -89,4 +89,14 @@ public class UsuarioDAO {
             return ps.executeUpdate() > 0;
         }
     }
+
+    public boolean eliminarUsuario(String username) throws SQLException {
+        if (username == null || username.trim().isEmpty()) return false;
+        String sql = "DELETE FROM usuarios WHERE LOWER(username) = ?";
+        try (Connection conn = ConexionBD.getInstancia().getConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, username.trim().toLowerCase());
+            return ps.executeUpdate() > 0;
+        }
+    }
 }

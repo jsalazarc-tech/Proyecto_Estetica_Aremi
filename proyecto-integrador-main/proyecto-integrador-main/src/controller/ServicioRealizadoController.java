@@ -23,6 +23,10 @@ public class ServicioRealizadoController {
         return servicioRealizadoDAO.listarTodos();
     }
 
+    public List<ServicioRealizado> listarPorEmpleada(int idEmpleada) throws SQLException {
+        return servicioRealizadoDAO.listarPorEmpleada(idEmpleada);
+    }
+
     public List<ServicioRealizado> listarPendientes(int idEmpleada, Date inicio, Date fin) throws SQLException {
         return servicioRealizadoDAO.listarPendientesPorEmpleadaYFechas(idEmpleada, inicio, fin);
     }

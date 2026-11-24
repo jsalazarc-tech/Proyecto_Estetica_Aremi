@@ -139,10 +139,28 @@ public class EmpleadoController {
     }
 
     public void desactivarEmpleado(int id) throws Exception {
-        if (id <= 0) throw new IllegalArgumentException("ID inválido.");
-        boolean exito = empleadoDAO.cambiarEstadoActivo(id, false);
+        cambiarEstadoEmpleado(id, false);
+    }
+
+    public void cambiarEstadoEmpleado(int id, boolean activo) throws Exception {
+        if (id <= 0) throw new IllegalArgumentException("Seleccione un empleado de la tabla.");
+        boolean exito = empleadoDAO.cambiarEstadoActivo(id, activo);
         if (!exito) {
-            throw new SQLException("No se pudo desactivar la empleada.");
+            throw new SQLException("No se pudo actualizar el estado del empleado.");
+        }
+    }
+
+    public void eliminarEmpleado(int id) throws Exception {
+        if (id <= 0) throw new IllegalArgumentException("Seleccione un empleado de la tabla para eliminar.");
+        Empleado emp = empleadoDAO.buscarPorId(id);
+        boolean exito = empleadoDAO.eliminar(id);
+        if (!exito) {
+            throw new SQLException("No se pudo eliminar el empleado.");
+        }
+        if (emp != null && emp.getUsername() != null && !emp.getUsername().trim().isEmpty()) {
+            try {
+                usuarioDAO.eliminarUsuario(emp.getUsername());
+            } catch (Exception ignored) {}
         }
     }
 }

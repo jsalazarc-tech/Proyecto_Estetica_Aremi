@@ -293,12 +293,34 @@ public class AgendarCitaGUI extends JFrame {
 
         cboEmpleadas.removeAllItems();
         cboFiltroEmpleada.removeAllItems();
-        cboFiltroEmpleada.addItem("Todas");
+        boolean esAdmin = util.SeguridadManager.esAdministrador();
+        Integer idActual = util.SeguridadManager.getIdEmpleadaActual();
+        String userActual = util.SeguridadManager.getUsuarioActual();
+
+        if (esAdmin) {
+            cboFiltroEmpleada.addItem("Todas");
+        }
         try {
             List<Empleado> emps = empleadoController.listarActivas();
             for (Empleado e : emps) {
-                cboEmpleadas.addItem(e);
-                cboFiltroEmpleada.addItem(e.getNombre());
+                if (esAdmin) {
+                    cboEmpleadas.addItem(e);
+                    cboFiltroEmpleada.addItem(e.getNombre());
+                } else {
+                    boolean coincide = (idActual != null && e.getId() == idActual) ||
+                                       (e.getUsername() != null && e.getUsername().equalsIgnoreCase(userActual)) ||
+                                       (e.getNombre() != null && (e.getNombre().equalsIgnoreCase(userActual) || e.getNombre().toLowerCase().contains(userActual.toLowerCase())));
+                    if (coincide) {
+                        cboEmpleadas.addItem(e);
+                        cboFiltroEmpleada.addItem(e.getNombre());
+                    }
+                }
+            }
+            if (!esAdmin && cboEmpleadas.getItemCount() > 0) {
+                cboEmpleadas.setSelectedIndex(0);
+                cboEmpleadas.setEnabled(false);
+                cboFiltroEmpleada.setSelectedIndex(0);
+                cboFiltroEmpleada.setEnabled(false);
             }
         } catch (Exception ignored) {}
     }
