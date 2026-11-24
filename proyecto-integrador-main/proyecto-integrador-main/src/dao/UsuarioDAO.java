@@ -40,6 +40,20 @@ public class UsuarioDAO {
         }
     }
 
+    public String obtenerRol(String username) throws SQLException {
+        String sql = "SELECT rol FROM usuarios WHERE LOWER(username) = ?";
+        try (Connection conn = ConexionBD.getInstancia().getConexion();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, username.trim().toLowerCase());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("rol");
+                }
+            }
+        }
+        return "empleada";
+    }
+
     public boolean crearUsuario(String username, String passwordHash, String nombreCompleto, String rol) throws SQLException {
         String sql = "INSERT INTO usuarios (username, password, nombre_completo, rol) VALUES (?, ?, ?, ?)";
         try (Connection conn = ConexionBD.getInstancia().getConexion();
@@ -47,29 +61,32 @@ public class UsuarioDAO {
             ps.setString(1, username.trim().toLowerCase());
             ps.setString(2, passwordHash);
             ps.setString(3, nombreCompleto.trim());
-            ps.setString(4, rol != null ? rol.trim().toLowerCase() : "empleada");
+            ps.setString(4, (rol != null && !rol.trim().isEmpty()) ? rol.trim().toLowerCase() : "empleada");
             return ps.executeUpdate() > 0;
         }
     }
 
     public boolean actualizarUsuario(String username, String passwordHash, String nombreCompleto) throws SQLException {
-        if (passwordHash != null && !passwordHash.trim().isEmpty()) {
-            String sql = "UPDATE usuarios SET password = ?, nombre_completo = ? WHERE LOWER(username) = ?";
-            try (Connection conn = ConexionBD.getInstancia().getConexion();
-                 PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, passwordHash);
-                ps.setString(2, nombreCompleto.trim());
-                ps.setString(3, username.trim().toLowerCase());
-                return ps.executeUpdate() > 0;
-            }
-        } else {
-            String sql = "UPDATE usuarios SET nombre_completo = ? WHERE LOWER(username) = ?";
-            try (Connection conn = ConexionBD.getInstancia().getConexion();
-                 PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, nombreCompleto.trim());
-                ps.setString(2, username.trim().toLowerCase());
-                return ps.executeUpdate() > 0;
-            }
+        return actualizarUsuario(username, passwordHash, nombreCompleto, null);
+    }
+
+    public boolean actualizarUsuario(String username, String passwordHash, String nombreCompleto, String rol) throws SQLException {
+        StringBuilder sql = new StringBuilder("UPDATE usuarios SET nombre_completo = ?");
+        boolean tienePass = (passwordHash != null && !passwordHash.trim().isEmpty());
+        boolean tieneRol = (rol != null && !rol.trim().isEmpty());
+
+        if (tienePass) sql.append(", password = ?");
+        if (tieneRol) sql.append(", rol = ?");
+        sql.append(" WHERE LOWER(username) = ?");
+
+        try (Connection conn = ConexionBD.getInstancia().getConexion();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            int idx = 1;
+            ps.setString(idx++, nombreCompleto.trim());
+            if (tienePass) ps.setString(idx++, passwordHash.trim());
+            if (tieneRol) ps.setString(idx++, rol.trim().toLowerCase());
+            ps.setString(idx++, username.trim().toLowerCase());
+            return ps.executeUpdate() > 0;
         }
     }
 }

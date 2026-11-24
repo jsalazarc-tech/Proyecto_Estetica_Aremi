@@ -164,12 +164,16 @@ public class ConexionBD {
                 "  id INT AUTO_INCREMENT PRIMARY KEY," +
                 "  nombre VARCHAR(100) NOT NULL," +
                 "  telefono VARCHAR(20) NOT NULL," +
+                "  direccion VARCHAR(200) DEFAULT ''," +
+                "  email VARCHAR(100) DEFAULT ''," +
                 "  especialidad VARCHAR(50) NOT NULL," +
                 "  porcentaje_comision DECIMAL(5,2) NOT NULL," +
                 "  username VARCHAR(50) NULL," +
                 "  activo TINYINT(1) DEFAULT 1" +
                 ")"
             );
+            try { stmt.executeUpdate("ALTER TABLE empleadas ADD COLUMN IF NOT EXISTS direccion VARCHAR(200) DEFAULT ''"); } catch (Exception ignored) {}
+            try { stmt.executeUpdate("ALTER TABLE empleadas ADD COLUMN IF NOT EXISTS email VARCHAR(100) DEFAULT ''"); } catch (Exception ignored) {}
 
             // 3. Clientes
             stmt.executeUpdate(
@@ -290,19 +294,21 @@ public class ConexionBD {
             try (Statement s = conn.createStatement();
                  ResultSet rs = s.executeQuery("SELECT COUNT(*) FROM empleadas")) {
                 if (rs.next() && rs.getInt(1) == 0) {
-                    String sql = "INSERT INTO empleadas (nombre, telefono, especialidad, porcentaje_comision, username, activo) VALUES (?, ?, ?, ?, ?, 1)";
+                    String sql = "INSERT INTO empleadas (nombre, telefono, direccion, email, especialidad, porcentaje_comision, username, activo) VALUES (?, ?, ?, ?, ?, ?, ?, 1)";
                     try (PreparedStatement ps = conn.prepareStatement(sql)) {
                         Object[][] emps = {
-                            {"Ashley", "3101234567", "Uñas y Manicure", 20.0, "ashley"},
-                            {"Monika", "3119876543", "Cejas", 30.0, "monika"},
-                            {"Veronika", "3125556677", "Depilación", 50.0, "veronika"}
+                            {"Ashley", "3101234567", "Calle 10 # 45-20", "ashley@salonaremi.com", "Uñas y Manicure", 20.0, "ashley"},
+                            {"Monika", "3119876543", "Av. 6N # 28-15", "monika@salonaremi.com", "Cejas", 30.0, "monika"},
+                            {"Veronika", "3125556677", "Carrera 56 # 14-80", "veronika@salonaremi.com", "Depilación", 50.0, "veronika"}
                         };
                         for (Object[] emp : emps) {
                             ps.setString(1, (String) emp[0]);
                             ps.setString(2, (String) emp[1]);
                             ps.setString(3, (String) emp[2]);
-                            ps.setDouble(4, (Double) emp[3]);
+                            ps.setString(4, (String) emp[3]);
                             ps.setString(5, (String) emp[4]);
+                            ps.setDouble(6, (Double) emp[5]);
+                            ps.setString(7, (String) emp[6]);
                             ps.executeUpdate();
                         }
                     }

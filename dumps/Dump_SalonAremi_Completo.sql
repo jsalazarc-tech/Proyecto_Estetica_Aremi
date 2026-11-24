@@ -45,6 +45,8 @@ CREATE TABLE `empleadas` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `nombre` VARCHAR(100) NOT NULL,
   `telefono` VARCHAR(20) DEFAULT NULL,
+  `direccion` VARCHAR(200) DEFAULT '',
+  `email` VARCHAR(100) DEFAULT '',
   `especialidad` VARCHAR(100) NOT NULL,
   `porcentaje_comision` DECIMAL(5,2) NOT NULL,
   `username` VARCHAR(50) DEFAULT NULL,
@@ -54,10 +56,10 @@ CREATE TABLE `empleadas` (
   CONSTRAINT `fk_empleadas_usuario` FOREIGN KEY (`username`) REFERENCES `usuarios` (`username`) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `empleadas` (`nombre`, `telefono`, `especialidad`, `porcentaje_comision`, `username`, `activo`) VALUES
-('Ashley', '3101234567', 'Uñas y Manicure', 20.00, 'ashley', 1),
-('Monika', '3119876543', 'Cejas', 30.00, 'monika', 1),
-('Veronika', '3125556677', 'Depilación', 50.00, 'veronika', 1);
+INSERT INTO `empleadas` (`nombre`, `telefono`, `direccion`, `email`, `especialidad`, `porcentaje_comision`, `username`, `activo`) VALUES
+('Ashley', '3101234567', 'Calle 10 # 45-20', 'ashley@salonaremi.com', 'Uñas y Manicure', 20.00, 'ashley', 1),
+('Monika', '3119876543', 'Av. 6N # 28-15', 'monika@salonaremi.com', 'Cejas', 30.00, 'monika', 1),
+('Veronika', '3125556677', 'Carrera 56 # 14-80', 'veronika@salonaremi.com', 'Depilación', 50.00, 'veronika', 1);
 
 -- --------------------------------------------------------
 -- 3. Tabla de Clientes (RF-02, CU-03, CU-06)

@@ -1,18 +1,23 @@
 package controller;
 
 import dao.EmpleadoDAO;
+import dao.UsuarioDAO;
 import model.Empleado;
+import util.SeguridadManager;
 import java.sql.SQLException;
 import java.util.List;
 
 /**
- * Controlador para la gestión de Empleadas y Porcentajes de Comisión.
+ * Controlador para la gestión de Empleadas, Porcentajes de Comisión,
+ * datos de contacto (dirección, email) y asignación de rol (administrador / empleada).
  */
 public class EmpleadoController {
     private final EmpleadoDAO empleadoDAO;
+    private final UsuarioDAO usuarioDAO;
 
     public EmpleadoController() {
         this.empleadoDAO = new EmpleadoDAO();
+        this.usuarioDAO = new UsuarioDAO();
     }
 
     public List<Empleado> listarTodas() throws SQLException {
@@ -32,10 +37,14 @@ public class EmpleadoController {
     }
 
     public void registrarEmpleado(String nombre, String telefono, String especialidad, double comision, String username, boolean activo) throws Exception {
-        registrarEmpleado(nombre, telefono, especialidad, comision, username, "", activo);
+        registrarEmpleado(nombre, telefono, "", "", especialidad, comision, username, "", "empleada", activo);
     }
 
     public void registrarEmpleado(String nombre, String telefono, String especialidad, double comision, String username, String password, boolean activo) throws Exception {
+        registrarEmpleado(nombre, telefono, "", "", especialidad, comision, username, password, "empleada", activo);
+    }
+
+    public void registrarEmpleado(String nombre, String telefono, String direccion, String email, String especialidad, double comision, String username, String password, String rol, boolean activo) throws Exception {
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre de la empleada es obligatorio.");
         }
@@ -46,10 +55,21 @@ public class EmpleadoController {
             throw new IllegalArgumentException("El porcentaje de comisión debe estar entre 0% y 100%.");
         }
 
-        Empleado emp = new Empleado(nombre.trim(), telefono != null ? telefono.trim() : "", especialidad.trim(), comision);
         String userTrim = username != null ? username.trim() : "";
-        emp.setUsername(userTrim);
-        emp.setActivo(activo);
+        String rolFinal = (rol != null && !rol.trim().isEmpty()) ? rol.toLowerCase().trim() : "empleada";
+
+        Empleado emp = new Empleado(
+            0,
+            nombre.trim(),
+            telefono != null ? telefono.trim() : "",
+            especialidad.trim(),
+            comision,
+            userTrim,
+            activo,
+            direccion != null ? direccion.trim() : "",
+            email != null ? email.trim() : "",
+            rolFinal
+        );
 
         boolean exito = empleadoDAO.guardar(emp);
         if (!exito) {
@@ -58,21 +78,24 @@ public class EmpleadoController {
 
         if (!userTrim.isEmpty()) {
             String passFinal = (password != null && !password.trim().isEmpty()) ? password.trim() : userTrim + "123";
-            String hash = util.SeguridadManager.hashPassword(passFinal);
-            dao.UsuarioDAO usuarioDAO = new dao.UsuarioDAO();
+            String hash = SeguridadManager.hashPassword(passFinal);
             if (!usuarioDAO.existeUsuario(userTrim)) {
-                usuarioDAO.crearUsuario(userTrim, hash, nombre.trim(), "empleada");
+                usuarioDAO.crearUsuario(userTrim, hash, nombre.trim(), rolFinal);
             } else {
-                usuarioDAO.actualizarUsuario(userTrim, hash, nombre.trim());
+                usuarioDAO.actualizarUsuario(userTrim, hash, nombre.trim(), rolFinal);
             }
         }
     }
 
     public void actualizarEmpleado(int id, String nombre, String telefono, String especialidad, double comision, String username, boolean activo) throws Exception {
-        actualizarEmpleado(id, nombre, telefono, especialidad, comision, username, "", activo);
+        actualizarEmpleado(id, nombre, telefono, "", "", especialidad, comision, username, "", "empleada", activo);
     }
 
     public void actualizarEmpleado(int id, String nombre, String telefono, String especialidad, double comision, String username, String password, boolean activo) throws Exception {
+        actualizarEmpleado(id, nombre, telefono, "", "", especialidad, comision, username, password, "empleada", activo);
+    }
+
+    public void actualizarEmpleado(int id, String nombre, String telefono, String direccion, String email, String especialidad, double comision, String username, String password, String rol, boolean activo) throws Exception {
         if (id <= 0) {
             throw new IllegalArgumentException("ID de empleada inválido.");
         }
@@ -84,20 +107,33 @@ public class EmpleadoController {
         }
 
         String userTrim = username != null ? username.trim() : "";
-        Empleado emp = new Empleado(id, nombre.trim(), telefono != null ? telefono.trim() : "", especialidad.trim(), comision, userTrim, activo);
+        String rolFinal = (rol != null && !rol.trim().isEmpty()) ? rol.toLowerCase().trim() : "empleada";
+
+        Empleado emp = new Empleado(
+            id,
+            nombre.trim(),
+            telefono != null ? telefono.trim() : "",
+            especialidad.trim(),
+            comision,
+            userTrim,
+            activo,
+            direccion != null ? direccion.trim() : "",
+            email != null ? email.trim() : "",
+            rolFinal
+        );
+
         boolean exito = empleadoDAO.actualizar(emp);
         if (!exito) {
             throw new SQLException("No se pudo actualizar la empleada.");
         }
 
         if (!userTrim.isEmpty()) {
-            dao.UsuarioDAO usuarioDAO = new dao.UsuarioDAO();
-            String hash = (password != null && !password.trim().isEmpty()) ? util.SeguridadManager.hashPassword(password.trim()) : null;
+            String hash = (password != null && !password.trim().isEmpty()) ? SeguridadManager.hashPassword(password.trim()) : null;
             if (usuarioDAO.existeUsuario(userTrim)) {
-                usuarioDAO.actualizarUsuario(userTrim, hash, nombre.trim());
+                usuarioDAO.actualizarUsuario(userTrim, hash, nombre.trim(), rolFinal);
             } else {
                 String passFinal = (password != null && !password.trim().isEmpty()) ? password.trim() : userTrim + "123";
-                usuarioDAO.crearUsuario(userTrim, util.SeguridadManager.hashPassword(passFinal), nombre.trim(), "empleada");
+                usuarioDAO.crearUsuario(userTrim, SeguridadManager.hashPassword(passFinal), nombre.trim(), rolFinal);
             }
         }
     }

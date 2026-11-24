@@ -387,7 +387,10 @@ public class LiquidacionComisionesGUI extends JFrame {
                 ultimosPendientes
             );
 
-            JOptionPane.showMessageDialog(this, "✔ Comprobante PDF generado exitosamente en:\n" + ruta);
+            String avisoCorreo = (emp.getEmail() != null && !emp.getEmail().trim().isEmpty())
+                ? "\n\nNotificación de pago lista para enviar al correo de la empleada:\n" + emp.getEmail()
+                : "";
+            JOptionPane.showMessageDialog(this, "Comprobante PDF generado exitosamente en:\n" + ruta + avisoCorreo);
             try {
                 Desktop.getDesktop().open(new File(ruta));
             } catch (Exception ignored) {}

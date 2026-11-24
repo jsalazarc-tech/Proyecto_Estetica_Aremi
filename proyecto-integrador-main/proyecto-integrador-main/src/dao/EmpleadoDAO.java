@@ -7,26 +7,23 @@ import java.util.List;
 
 /**
  * Data Access Object (DAO) para la entidad Empleado.
- * Gestiona el personal del salón, especialidades y porcentajes de comisión.
+ * Gestiona el personal del salón, especialidades, comisiones, datos de contacto (dirección, email)
+ * y sincronización de roles de acceso.
  */
 public class EmpleadoDAO {
 
     public List<Empleado> listarTodos() throws SQLException {
         List<Empleado> lista = new ArrayList<>();
-        String sql = "SELECT id, nombre, telefono, especialidad, porcentaje_comision, username, activo FROM empleadas ORDER BY nombre ASC";
+        String sql = "SELECT e.id, e.nombre, e.telefono, e.direccion, e.email, e.especialidad, e.porcentaje_comision, e.username, e.activo, " +
+                     "COALESCE(u.rol, 'empleada') AS rol " +
+                     "FROM empleadas e " +
+                     "LEFT JOIN usuarios u ON LOWER(e.username) = LOWER(u.username) " +
+                     "ORDER BY e.nombre ASC";
         try (Connection conn = ConexionBD.getInstancia().getConexion();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
-                lista.add(new Empleado(
-                    rs.getInt("id"),
-                    rs.getString("nombre"),
-                    rs.getString("telefono"),
-                    rs.getString("especialidad"),
-                    rs.getDouble("porcentaje_comision"),
-                    rs.getString("username"),
-                    rs.getBoolean("activo")
-                ));
+                lista.add(mapearEmpleado(rs));
             }
         }
         return lista;
@@ -34,41 +31,34 @@ public class EmpleadoDAO {
 
     public List<Empleado> listarActivas() throws SQLException {
         List<Empleado> lista = new ArrayList<>();
-        String sql = "SELECT id, nombre, telefono, especialidad, porcentaje_comision, username, activo FROM empleadas WHERE activo = 1 ORDER BY nombre ASC";
+        String sql = "SELECT e.id, e.nombre, e.telefono, e.direccion, e.email, e.especialidad, e.porcentaje_comision, e.username, e.activo, " +
+                     "COALESCE(u.rol, 'empleada') AS rol " +
+                     "FROM empleadas e " +
+                     "LEFT JOIN usuarios u ON LOWER(e.username) = LOWER(u.username) " +
+                     "WHERE e.activo = 1 " +
+                     "ORDER BY e.nombre ASC";
         try (Connection conn = ConexionBD.getInstancia().getConexion();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
-                lista.add(new Empleado(
-                    rs.getInt("id"),
-                    rs.getString("nombre"),
-                    rs.getString("telefono"),
-                    rs.getString("especialidad"),
-                    rs.getDouble("porcentaje_comision"),
-                    rs.getString("username"),
-                    rs.getBoolean("activo")
-                ));
+                lista.add(mapearEmpleado(rs));
             }
         }
         return lista;
     }
 
     public Empleado buscarPorId(int id) throws SQLException {
-        String sql = "SELECT id, nombre, telefono, especialidad, porcentaje_comision, username, activo FROM empleadas WHERE id = ?";
+        String sql = "SELECT e.id, e.nombre, e.telefono, e.direccion, e.email, e.especialidad, e.porcentaje_comision, e.username, e.activo, " +
+                     "COALESCE(u.rol, 'empleada') AS rol " +
+                     "FROM empleadas e " +
+                     "LEFT JOIN usuarios u ON LOWER(e.username) = LOWER(u.username) " +
+                     "WHERE e.id = ?";
         try (Connection conn = ConexionBD.getInstancia().getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return new Empleado(
-                        rs.getInt("id"),
-                        rs.getString("nombre"),
-                        rs.getString("telefono"),
-                        rs.getString("especialidad"),
-                        rs.getDouble("porcentaje_comision"),
-                        rs.getString("username"),
-                        rs.getBoolean("activo")
-                    );
+                    return mapearEmpleado(rs);
                 }
             }
         }
@@ -76,21 +66,18 @@ public class EmpleadoDAO {
     }
 
     public Empleado buscarPorUsername(String username) throws SQLException {
-        String sql = "SELECT id, nombre, telefono, especialidad, porcentaje_comision, username, activo FROM empleadas WHERE username = ? LIMIT 1";
+        if (username == null || username.trim().isEmpty()) return null;
+        String sql = "SELECT e.id, e.nombre, e.telefono, e.direccion, e.email, e.especialidad, e.porcentaje_comision, e.username, e.activo, " +
+                     "COALESCE(u.rol, 'empleada') AS rol " +
+                     "FROM empleadas e " +
+                     "LEFT JOIN usuarios u ON LOWER(e.username) = LOWER(u.username) " +
+                     "WHERE LOWER(e.username) = ? LIMIT 1";
         try (Connection conn = ConexionBD.getInstancia().getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, username);
+            ps.setString(1, username.trim().toLowerCase());
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return new Empleado(
-                        rs.getInt("id"),
-                        rs.getString("nombre"),
-                        rs.getString("telefono"),
-                        rs.getString("especialidad"),
-                        rs.getDouble("porcentaje_comision"),
-                        rs.getString("username"),
-                        rs.getBoolean("activo")
-                    );
+                    return mapearEmpleado(rs);
                 }
             }
         }
@@ -98,15 +85,18 @@ public class EmpleadoDAO {
     }
 
     public boolean guardar(Empleado e) throws SQLException {
-        String sql = "INSERT INTO empleadas (nombre, telefono, especialidad, porcentaje_comision, username, activo) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO empleadas (nombre, telefono, direccion, email, especialidad, porcentaje_comision, username, activo) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = ConexionBD.getInstancia().getConexion();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, e.getNombre());
             ps.setString(2, e.getTelefono());
-            ps.setString(3, e.getEspecialidad());
-            ps.setDouble(4, e.getPorcentajeComision());
-            ps.setString(5, e.getUsername());
-            ps.setInt(6, e.isActivo() ? 1 : 0);
+            ps.setString(3, e.getDireccion() != null ? e.getDireccion() : "");
+            ps.setString(4, e.getEmail() != null ? e.getEmail() : "");
+            ps.setString(5, e.getEspecialidad());
+            ps.setDouble(6, e.getPorcentajeComision());
+            ps.setString(7, e.getUsername());
+            ps.setInt(8, e.isActivo() ? 1 : 0);
             int filas = ps.executeUpdate();
             if (filas > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
@@ -119,16 +109,19 @@ public class EmpleadoDAO {
     }
 
     public boolean actualizar(Empleado e) throws SQLException {
-        String sql = "UPDATE empleadas SET nombre = ?, telefono = ?, especialidad = ?, porcentaje_comision = ?, username = ?, activo = ? WHERE id = ?";
+        String sql = "UPDATE empleadas SET nombre = ?, telefono = ?, direccion = ?, email = ?, especialidad = ?, " +
+                     "porcentaje_comision = ?, username = ?, activo = ? WHERE id = ?";
         try (Connection conn = ConexionBD.getInstancia().getConexion();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, e.getNombre());
             ps.setString(2, e.getTelefono());
-            ps.setString(3, e.getEspecialidad());
-            ps.setDouble(4, e.getPorcentajeComision());
-            ps.setString(5, e.getUsername());
-            ps.setInt(6, e.isActivo() ? 1 : 0);
-            ps.setInt(7, e.getId());
+            ps.setString(3, e.getDireccion() != null ? e.getDireccion() : "");
+            ps.setString(4, e.getEmail() != null ? e.getEmail() : "");
+            ps.setString(5, e.getEspecialidad());
+            ps.setDouble(6, e.getPorcentajeComision());
+            ps.setString(7, e.getUsername());
+            ps.setInt(8, e.isActivo() ? 1 : 0);
+            ps.setInt(9, e.getId());
             return ps.executeUpdate() > 0;
         }
     }
@@ -141,5 +134,28 @@ public class EmpleadoDAO {
             ps.setInt(2, id);
             return ps.executeUpdate() > 0;
         }
+    }
+
+    private Empleado mapearEmpleado(ResultSet rs) throws SQLException {
+        String dir = "";
+        String em = "";
+        String rol = "empleada";
+
+        try { dir = rs.getString("direccion"); } catch (SQLException ignored) {}
+        try { em = rs.getString("email"); } catch (SQLException ignored) {}
+        try { rol = rs.getString("rol"); } catch (SQLException ignored) {}
+
+        return new Empleado(
+            rs.getInt("id"),
+            rs.getString("nombre"),
+            rs.getString("telefono"),
+            rs.getString("especialidad"),
+            rs.getDouble("porcentaje_comision"),
+            rs.getString("username"),
+            rs.getBoolean("activo"),
+            dir != null ? dir : "",
+            em != null ? em : "",
+            rol != null ? rol : "empleada"
+        );
     }
 }
