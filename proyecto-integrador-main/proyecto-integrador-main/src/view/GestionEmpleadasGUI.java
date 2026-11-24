@@ -15,6 +15,7 @@ public class GestionEmpleadasGUI extends JFrame {
     private final EmpleadoController empleadoController;
 
     private JTextField txtNombre, txtTelefono, txtEspecialidad, txtComision, txtUsername;
+    private JPasswordField txtPassword;
     private JCheckBox chkActivo;
     private JTable tablaEmpleadas;
     private DefaultTableModel modeloTabla;
@@ -72,6 +73,8 @@ public class GestionEmpleadasGUI extends JFrame {
         txtEspecialidad = new JTextField(15);
         txtComision = new JTextField(15);
         txtUsername = new JTextField(15);
+        txtPassword = new JPasswordField(15);
+        txtPassword.setToolTipText("Contraseña para iniciar sesión. Si se deja en blanco al crear, se asignará <usuario>123");
         chkActivo = new JCheckBox("Empleada Activa", true);
         chkActivo.setOpaque(false);
 
@@ -81,6 +84,7 @@ public class GestionEmpleadasGUI extends JFrame {
         addFormField(formPanel, "Especialidad *:", txtEspecialidad, gbc, row++);
         addFormField(formPanel, "Porcentaje Comisión (%) *:", txtComision, gbc, row++);
         addFormField(formPanel, "Usuario del Sistema:", txtUsername, gbc, row++);
+        addFormField(formPanel, "Contraseña Acceso:", txtPassword, gbc, row++);
 
         gbc.gridx = 1;
         gbc.gridy = row++;
@@ -162,13 +166,14 @@ public class GestionEmpleadasGUI extends JFrame {
                     txtEspecialidad.setText((String) modeloTabla.getValueAt(sel, 3));
                     txtComision.setText(String.valueOf(modeloTabla.getValueAt(sel, 4)));
                     txtUsername.setText((String) modeloTabla.getValueAt(sel, 5));
+                    txtPassword.setText("");
                     chkActivo.setSelected("Activo".equals(modeloTabla.getValueAt(sel, 6)));
                 }
             }
         });
     }
 
-    private void addFormField(JPanel panel, String label, JTextField field, GridBagConstraints gbc, int row) {
+    private void addFormField(JPanel panel, String label, JComponent field, GridBagConstraints gbc, int row) {
         JLabel lbl = new JLabel(label);
         lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
         gbc.gridx = 0;
@@ -205,15 +210,17 @@ public class GestionEmpleadasGUI extends JFrame {
     private void guardarEmpleada() {
         try {
             double comision = Double.parseDouble(txtComision.getText().trim());
+            String pass = new String(txtPassword.getPassword()).trim();
             empleadoController.registrarEmpleado(
                 txtNombre.getText(),
                 txtTelefono.getText(),
                 txtEspecialidad.getText(),
                 comision,
                 txtUsername.getText(),
+                pass,
                 chkActivo.isSelected()
             );
-            JOptionPane.showMessageDialog(this, "Empleada registrada exitosamente.");
+            JOptionPane.showMessageDialog(this, "Empleada y cuenta de acceso registradas exitosamente.");
             limpiarFormulario();
             cargarEmpleadas();
         } catch (NumberFormatException nfe) {
@@ -230,6 +237,7 @@ public class GestionEmpleadasGUI extends JFrame {
         }
         try {
             double comision = Double.parseDouble(txtComision.getText().trim());
+            String pass = new String(txtPassword.getPassword()).trim();
             empleadoController.actualizarEmpleado(
                 empleadaSeleccionadaId,
                 txtNombre.getText(),
@@ -237,6 +245,7 @@ public class GestionEmpleadasGUI extends JFrame {
                 txtEspecialidad.getText(),
                 comision,
                 txtUsername.getText(),
+                pass,
                 chkActivo.isSelected()
             );
             JOptionPane.showMessageDialog(this, "Información de la empleada actualizada correctamente.");
@@ -274,6 +283,7 @@ public class GestionEmpleadasGUI extends JFrame {
         txtEspecialidad.setText("");
         txtComision.setText("");
         txtUsername.setText("");
+        txtPassword.setText("");
         chkActivo.setSelected(true);
         tablaEmpleadas.clearSelection();
     }

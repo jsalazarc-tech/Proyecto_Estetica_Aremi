@@ -69,11 +69,11 @@ public class LiquidacionComisionesGUI extends JFrame {
 
         // Tab 1: Liquidar Período
         JPanel panelLiquidar = crearPanelLiquidacion();
-        tabbedPane.addTab("  💼 Liquidar Período  ", panelLiquidar);
+        tabbedPane.addTab("  Liquidar Período  ", panelLiquidar);
 
         // Tab 2: Historial
         JPanel panelHistorico = crearPanelHistorico();
-        tabbedPane.addTab("  📜 Historial de Liquidaciones  ", panelHistorico);
+        tabbedPane.addTab("  Historial de Liquidaciones  ", panelHistorico);
 
         add(tabbedPane);
     }
@@ -169,20 +169,34 @@ public class LiquidacionComisionesGUI extends JFrame {
         JPanel actionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 5));
         actionsPanel.setOpaque(false);
 
-        btnExportarPDF = new JButton("📄 Generar Comprobante PDF");
+        btnExportarPDF = new JButton("Generar Comprobante PDF") {
+            @Override
+            public void setEnabled(boolean b) {
+                super.setEnabled(b);
+                if (b) {
+                    setBackground(new Color(70, 130, 180));
+                    setForeground(Color.WHITE);
+                } else {
+                    setBackground(new Color(225, 230, 235));
+                    setForeground(new Color(130, 140, 150));
+                }
+            }
+        };
         btnExportarPDF.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnExportarPDF.setBackground(new Color(70, 130, 180));
-        btnExportarPDF.setForeground(Color.WHITE);
+        btnExportarPDF.setBackground(new Color(225, 230, 235));
+        btnExportarPDF.setForeground(new Color(130, 140, 150));
         btnExportarPDF.setOpaque(true);
         btnExportarPDF.setBorderPainted(false);
+        btnExportarPDF.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnExportarPDF.setEnabled(false);
 
-        btnProcesarLiquidacion = new JButton("✔ Procesar y Guardar Liquidación");
+        btnProcesarLiquidacion = new JButton("Procesar y Guardar Liquidación");
         btnProcesarLiquidacion.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnProcesarLiquidacion.setBackground(ROSA_OSCURO);
         btnProcesarLiquidacion.setForeground(Color.WHITE);
         btnProcesarLiquidacion.setOpaque(true);
         btnProcesarLiquidacion.setBorderPainted(false);
+        btnProcesarLiquidacion.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         actionsPanel.add(btnExportarPDF);
         actionsPanel.add(btnProcesarLiquidacion);

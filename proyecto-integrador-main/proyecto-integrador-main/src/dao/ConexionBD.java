@@ -358,6 +358,28 @@ public class ConexionBD {
                     }
                 }
             }
+
+            // Sincronizar cuentas de usuario para empleadas con username
+            try (Statement sEmp = conn.createStatement();
+                 ResultSet rsEmp = sEmp.executeQuery("SELECT username, nombre FROM empleadas WHERE username IS NOT NULL AND TRIM(username) != ''")) {
+                while (rsEmp.next()) {
+                    String uName = rsEmp.getString(1).trim().toLowerCase();
+                    String uNom = rsEmp.getString(2);
+                    try (PreparedStatement psCheck = conn.prepareStatement("SELECT COUNT(*) FROM usuarios WHERE LOWER(username) = ?")) {
+                        psCheck.setString(1, uName);
+                        try (ResultSet rsC = psCheck.executeQuery()) {
+                            if (rsC.next() && rsC.getInt(1) == 0) {
+                                try (PreparedStatement psIns = conn.prepareStatement("INSERT INTO usuarios (username, password, nombre_completo, rol) VALUES (?, ?, ?, 'empleada')")) {
+                                    psIns.setString(1, uName);
+                                    psIns.setString(2, util.SeguridadManager.hashPassword(uName + "123"));
+                                    psIns.setString(3, uNom);
+                                    psIns.executeUpdate();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         } catch (SQLException e) {
             System.err.println("Aviso al precargar datos: " + e.getMessage());
         }
