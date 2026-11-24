@@ -77,6 +77,9 @@ public class Empleado {
 
     @Override
     public String toString() {
+        if (!util.SeguridadManager.esAdministrador()) {
+            return nombre;
+        }
         return nombre + " (" + especialidad + " - " + String.format("%.0f%%", porcentajeComision) + ")";
     }
 }
